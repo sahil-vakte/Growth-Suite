@@ -1,6 +1,14 @@
 /** Unified lead score across channels: sum of points for each signal seen (each signal counted once unless repeatable). */
-export interface ScoringRuleDef { channel: string; signalKey: string; points: number; active: boolean }
-export interface Signal { channel: string; key: string }
+export interface ScoringRuleDef {
+  channel: string;
+  signalKey: string;
+  points: number;
+  active: boolean;
+}
+export interface Signal {
+  channel: string;
+  key: string;
+}
 
 export const platformDefaultRules: ScoringRuleDef[] = [
   { channel: "form", signalKey: "form_submitted", points: 30, active: true },
@@ -14,12 +22,18 @@ export const platformDefaultRules: ScoringRuleDef[] = [
   { channel: "appointment", signalKey: "appointment_booked", points: 40, active: true },
 ];
 
-export function computeScore(signals: Signal[], siteRules: ScoringRuleDef[], useDefaults = true): number {
+export function computeScore(
+  signals: Signal[],
+  siteRules: ScoringRuleDef[],
+  useDefaults = true,
+): number {
   const rules = new Map<string, number>();
-  if (useDefaults) for (const r of platformDefaultRules) rules.set(`${r.channel}:${r.signalKey}`, r.points);
+  if (useDefaults)
+    for (const r of platformDefaultRules) rules.set(`${r.channel}:${r.signalKey}`, r.points);
   for (const r of siteRules) {
     const k = `${r.channel}:${r.signalKey}`;
-    if (r.active) rules.set(k, r.points); else rules.delete(k);
+    if (r.active) rules.set(k, r.points);
+    else rules.delete(k);
   }
   const seen = new Set<string>();
   let score = 0;

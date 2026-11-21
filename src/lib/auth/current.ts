@@ -18,7 +18,12 @@ export interface AdminContext {
 }
 
 export class HttpError extends Error {
-  constructor(public status: number, message: string) { super(message); }
+  constructor(
+    public status: number,
+    message: string,
+  ) {
+    super(message);
+  }
 }
 
 export async function getAdminContext(): Promise<AdminContext | null> {
@@ -28,25 +33,48 @@ export async function getAdminContext(): Promise<AdminContext | null> {
   const [user] = await db.select().from(users).where(eq(users.id, claims.uid)).limit(1);
   if (!user || user.status !== "active" || user.sessionVersion !== claims.ver) return null;
 
-  const rows = await db.select({ m: memberships, s: sites }).from(memberships)
-    .innerJoin(sites, eq(sites.id, memberships.siteId)).where(eq(memberships.userId, user.id));
+  const rows = await db
+    .select({ m: memberships, s: sites })
+    .from(memberships)
+    .innerJoin(sites, eq(sites.id, memberships.siteId))
+    .where(eq(memberships.userId, user.id));
   let all = rows.map((r) => ({ id: r.s.id, name: r.s.name, domain: r.s.domain }));
-  if (user.isPlatformAdmin) all = (await db.select().from(sites)).map((s) => ({ id: s.id, name: s.name, domain: s.domain }));
+  if (user.isPlatformAdmin)
+    all = (await db.select().from(sites)).map((s) => ({
+      id: s.id,
+      name: s.name,
+      domain: s.domain,
+    }));
   const wanted = jar.get(SITE_COOKIE)?.value;
   const chosenId = all.find((s) => s.id === wanted)?.id ?? all[0]?.id;
   if (!chosenId) return null;
   const [site] = await db.select().from(sites).where(eq(sites.id, chosenId)).limit(1);
   const m = rows.find((r) => r.s.id === chosenId)?.m;
   const member = m
-    ? { role: m.role as Member["role"], crmAccess: m.crmAccess as Member["crmAccess"], socialLevel: m.socialLevel as Member["socialLevel"], socialApprove: m.socialApprove, mcpAccess: m.mcpAccess, isPlatformAdmin: user.isPlatformAdmin }
-    : { role: "admin" as const, crmAccess: "inherit" as const, socialLevel: "publisher" as const, socialApprove: true, mcpAccess: true, isPlatformAdmin: true };
+    ? {
+        role: m.role as Member["role"],
+        crmAccess: m.crmAccess as Member["crmAccess"],
+        socialLevel: m.socialLevel as Member["socialLevel"],
+        socialApprove: m.socialApprove,
+        mcpAccess: m.mcpAccess,
+        isPlatformAdmin: user.isPlatformAdmin,
+      }
+    : {
+        role: "admin" as const,
+        crmAccess: "inherit" as const,
+        socialLevel: "publisher" as const,
+        socialApprove: true,
+        mcpAccess: true,
+        isPlatformAdmin: true,
+      };
   return { user, site, member, actor: user.email, sites: all };
 }
 
 export async function requireAdmin(feature?: Feature): Promise<AdminContext> {
   const ctx = await getAdminContext();
   if (!ctx) throw new HttpError(401, "Please sign in.");
-  if (feature && !canAccess(ctx.member, feature)) throw new HttpError(403, "You do not have access to this area.");
+  if (feature && !canAccess(ctx.member, feature))
+    throw new HttpError(403, "You do not have access to this area.");
   return ctx;
 }
 
@@ -65,6 +93,10 @@ export async function assertSameOrigin() {
 }
 
 export async function membershipFor(siteId: string, userId: string) {
-  const [m] = await db.select().from(memberships).where(and(eq(memberships.siteId, siteId), eq(memberships.userId, userId))).limit(1);
+  const [m] = await db
+    .select()
+    .from(memberships)
+    .where(and(eq(memberships.siteId, siteId), eq(memberships.userId, userId)))
+    .limit(1);
   return m ?? null;
 }

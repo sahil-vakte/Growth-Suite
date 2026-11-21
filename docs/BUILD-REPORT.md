@@ -122,3 +122,12 @@ public form and CRM capture, popup dismissal, chat, booking, lead notes/stages,
 and social submit/return/approve. Playwright has CI-safe serial execution, retries
 and failure traces. No schema changes. Typecheck, 37 unit tests, migrations/seed,
 build, 45 smoke checks and 8 browser tests passed.
+
+## Tasks 0.2 / 0.3 ? automated checks
+
+0.3 Done: ESLint and Prettier configured, source formatted and lint findings fixed.
+Typecheck, lint (zero warnings), formatting, 37 unit tests, migrations/seed,
+production build, 45 smoke checks and 8 browser tests pass locally.
+0.2 Built: GitHub Actions runs the full sequence with isolated PostgreSQL and mock
+integrations on pull requests and main pushes. Hosted run and required-check
+enforcement are being verified; not marked complete yet. No schema changes.

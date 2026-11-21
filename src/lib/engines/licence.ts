@@ -3,7 +3,12 @@
 import { createPrivateKey, createPublicKey, sign, verify, generateKeyPairSync } from "node:crypto";
 
 export const GRACE_DAYS = 14;
-export interface LicencePayload { site: string; module: string; endsAt: string; issuedAt: string }
+export interface LicencePayload {
+  site: string;
+  module: string;
+  endsAt: string;
+  issuedAt: string;
+}
 
 const b64u = (b: Buffer) => b.toString("base64url");
 
@@ -20,10 +25,18 @@ export function verifyLicence(statement: string, publicKeyPem: string): LicenceP
     const body = Buffer.from(b, "base64url");
     const ok = verify(null, body, createPublicKey(publicKeyPem), Buffer.from(s, "base64url"));
     return ok ? (JSON.parse(body.toString()) as LicencePayload) : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
-export function licenceActive(p: LicencePayload | null, site: string, module: string, lastCheckedAt: Date, now = new Date()): boolean {
+export function licenceActive(
+  p: LicencePayload | null,
+  site: string,
+  module: string,
+  lastCheckedAt: Date,
+  now = new Date(),
+): boolean {
   if (!p || p.site !== site || p.module !== module) return false;
   if (new Date(p.endsAt) < now) return false;
   return now.getTime() - lastCheckedAt.getTime() <= GRACE_DAYS * 86_400_000;
@@ -31,5 +44,8 @@ export function licenceActive(p: LicencePayload | null, site: string, module: st
 
 export function generateLicenceKeys(): { publicKeyPem: string; privateKeyPem: string } {
   const { publicKey, privateKey } = generateKeyPairSync("ed25519");
-  return { publicKeyPem: publicKey.export({ type: "spki", format: "pem" }).toString(), privateKeyPem: privateKey.export({ type: "pkcs8", format: "pem" }).toString() };
+  return {
+    publicKeyPem: publicKey.export({ type: "spki", format: "pem" }).toString(),
+    privateKeyPem: privateKey.export({ type: "pkcs8", format: "pem" }).toString(),
+  };
 }

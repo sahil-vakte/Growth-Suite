@@ -1,2 +1,12 @@
 import { ForgotForm } from "@/components/admin/AuthForms";
-export default function Forgot() { return <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: "2rem" }}><div className="card" style={{ width: "min(400px,100%)" }}><h1>Forgot your password?</h1><p className="muted">Enter your email and we will send you a link to choose a new one.</p><ForgotForm /></div></div>; }
+export default function Forgot() {
+  return (
+    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: "2rem" }}>
+      <div className="card" style={{ width: "min(400px,100%)" }}>
+        <h1>Forgot your password?</h1>
+        <p className="muted">Enter your email and we will send you a link to choose a new one.</p>
+        <ForgotForm />
+      </div>
+    </div>
+  );
+}

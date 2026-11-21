@@ -23,7 +23,9 @@ export function safeUrl(v: string): string | null {
   try {
     const u = new URL(s);
     return ["http:", "https:", "mailto:"].includes(u.protocol) ? u.toString() : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 /** Returns the href for a CTA, or null when it should not be drawn. */
@@ -42,7 +44,9 @@ export function ctaHref(cta: Partial<Cta> | null | undefined, pageUrl = ""): str
       const digits = value.replace(/[^\d+]/g, "");
       return digits.replace(/\D/g, "").length >= 6 ? `tel:${digits}` : null;
     }
-    case "form": return /^[\w-]+$/.test(value) ? `#form-${value}` : null;
-    default: return safeUrl(value);
+    case "form":
+      return /^[\w-]+$/.test(value) ? `#form-${value}` : null;
+    default:
+      return safeUrl(value);
   }
 }

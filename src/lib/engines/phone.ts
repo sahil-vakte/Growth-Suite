@@ -1,8 +1,13 @@
 /** Phone number normalisation. Stored as E.164 (+447700900123). De-duplication uses the full E.164 digits,
  * which (unlike "last 10 digits") is safe across countries. */
-export function normalisePhone(raw: string | null | undefined, defaultCountryCode = "44"): string | null {
+export function normalisePhone(
+  raw: string | null | undefined,
+  defaultCountryCode = "44",
+): string | null {
   if (!raw) return null;
-  let s = String(raw).trim().replace(/[\s().-]/g, "");
+  let s = String(raw)
+    .trim()
+    .replace(/[\s().-]/g, "");
   if (!s) return null;
   if (s.startsWith("00")) s = "+" + s.slice(2);
   if (s.startsWith("+")) {

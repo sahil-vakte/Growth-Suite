@@ -5,5 +5,7 @@ export default defineConfig({
   schema: "./src/db/schema.ts",
   out: "./drizzle",
   casing: "snake_case",
-  dbCredentials: { url: process.env.DATABASE_URL ?? "postgresql://postgres@localhost:5432/growth_suite" },
+  dbCredentials: {
+    url: process.env.DATABASE_URL ?? "postgresql://postgres@localhost:5432/growth_suite",
+  },
 });

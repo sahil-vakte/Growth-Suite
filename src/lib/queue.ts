@@ -3,14 +3,33 @@ import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { jobs } from "@/db/schema";
 
-export type JobHandler = (payload: Record<string, unknown>, job: { id: string; siteId: string | null; attempts: number }) => Promise<void>;
+export type JobHandler = (
+  payload: Record<string, unknown>,
+  job: { id: string; siteId: string | null; attempts: number },
+) => Promise<void>;
 const handlers = new Map<string, JobHandler>();
 
-export function registerHandler(type: string, fn: JobHandler) { handlers.set(type, fn); }
+export function registerHandler(type: string, fn: JobHandler) {
+  handlers.set(type, fn);
+}
 
-export async function enqueue(type: string, payload: Record<string, unknown>, opts: { siteId?: string; runAt?: Date; idempotency?: string; maxAttempts?: number } = {}) {
-  const [row] = await db.insert(jobs).values({ type, payload, siteId: opts.siteId ?? null, runAt: opts.runAt ?? new Date(), idempotency: opts.idempotency, maxAttempts: opts.maxAttempts ?? 5 })
-    .onConflictDoNothing({ target: jobs.idempotency }).returning({ id: jobs.id });
+export async function enqueue(
+  type: string,
+  payload: Record<string, unknown>,
+  opts: { siteId?: string; runAt?: Date; idempotency?: string; maxAttempts?: number } = {},
+) {
+  const [row] = await db
+    .insert(jobs)
+    .values({
+      type,
+      payload,
+      siteId: opts.siteId ?? null,
+      runAt: opts.runAt ?? new Date(),
+      idempotency: opts.idempotency,
+      maxAttempts: opts.maxAttempts ?? 5,
+    })
+    .onConflictDoNothing({ target: jobs.idempotency })
+    .returning({ id: jobs.id });
   return row?.id ?? null;
 }
 
@@ -22,8 +41,16 @@ export async function processDueJobs(limit = 25): Promise<{ processed: number; f
          OR (status = 'running' AND locked_at < now() - interval '10 minutes')
       ORDER BY run_at LIMIT ${limit} FOR UPDATE SKIP LOCKED)
     RETURNING id, type, payload, site_id, attempts, max_attempts`);
-  let processed = 0, failed = 0;
-  for (const r of res.rows as { id: string; type: string; payload: Record<string, unknown>; site_id: string | null; attempts: number; max_attempts: number }[]) {
+  let processed = 0,
+    failed = 0;
+  for (const r of res.rows as {
+    id: string;
+    type: string;
+    payload: Record<string, unknown>;
+    site_id: string | null;
+    attempts: number;
+    max_attempts: number;
+  }[]) {
     const h = handlers.get(r.type);
     try {
       if (!h) throw new Error(`No handler for job type ${r.type}`);

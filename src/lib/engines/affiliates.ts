@@ -1,5 +1,12 @@
 /** Affiliate commission calculation from the published terms in force when the referral entered. */
-export interface CommissionRules { type: "percent" | "fixed"; percent?: number; fixedMinor?: number; holdDays: number; minPayoutMinor: number; conversionStage: string }
+export interface CommissionRules {
+  type: "percent" | "fixed";
+  percent?: number;
+  fixedMinor?: number;
+  holdDays: number;
+  minPayoutMinor: number;
+  conversionStage: string;
+}
 
 export function commissionFor(rules: CommissionRules, dealValueMinor: number): number {
   if (rules.type === "fixed") return Math.max(0, rules.fixedMinor ?? 0);

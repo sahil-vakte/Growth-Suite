@@ -1,0 +1,74 @@
+name: Growth Suite checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    name: Verify application
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: growth
+          POSTGRES_PASSWORD: ci-only-password
+          POSTGRES_DB: growth_suite
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U growth -d growth_suite"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      CI: 'true'
+      DATABASE_URL: postgresql://growth:ci-only-password@localhost:5432/growth_suite
+      APP_URL: http://localhost:3000
+      BASE_URL: http://localhost:3000
+      ADMIN_EMAIL: admin@example.test
+      ADMIN_PASSWORD: CI-only-password-2026!
+      INTEGRATIONS_MODE: mock
+      DEFAULT_SITE_DOMAIN: localhost
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Prepare isolated test environment
+        run: |
+          cp .env.example .env
+          node -e "const fs=require('fs'),c=require('crypto');fs.appendFileSync(process.env.GITHUB_ENV, 'SESSION_SECRET='+c.randomBytes(48).toString('hex')+'\nENCRYPTION_KEY='+c.randomBytes(32).toString('base64')+'\nCRON_SECRET='+c.randomBytes(32).toString('hex')+'\n')"
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm test
+      - run: npm run db:migrate
+      - run: npm run db:seed
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Start application and run smoke tests
+        run: |
+          npm start > app.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://localhost:3000/api/health; then break; fi
+            sleep 1
+          done
+          curl --fail http://localhost:3000/api/health
+          npm run test:smoke
+      - name: Browser regression tests
+        run: npm run test:e2e
+        env:
+          E2E_REUSE_SERVER: 'true'
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: browser-failure-report
+          path: playwright-report/
+          retention-days: 3

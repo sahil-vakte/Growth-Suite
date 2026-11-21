@@ -6,7 +6,8 @@ import { tick } from "@/lib/jobs";
  *  Authorization: Bearer <CRON_SECRET>. Alternatively run `npm run worker` as a long-running process. */
 export async function POST(req: Request) {
   const auth = req.headers.get("authorization") ?? "";
-  if (!safeEqual(auth, `Bearer ${env.cronSecret}`)) return new Response("Unauthorised", { status: 401 });
+  if (!safeEqual(auth, `Bearer ${env.cronSecret}`))
+    return new Response("Unauthorised", { status: 401 });
   return Response.json(await tick());
 }
 export const GET = POST;

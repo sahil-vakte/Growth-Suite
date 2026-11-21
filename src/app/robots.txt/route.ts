@@ -3,8 +3,13 @@ import { getSetting } from "@/lib/settings";
 
 export async function GET(req: Request) {
   const site = await siteForHost(req.headers.get("x-forwarded-host") ?? req.headers.get("host"));
-  if (!site) return new Response("User-agent: *\nDisallow: /\n", { headers: { "Content-Type": "text/plain" } });
+  if (!site)
+    return new Response("User-agent: *\nDisallow: /\n", {
+      headers: { "Content-Type": "text/plain" },
+    });
   const { content } = await getSetting(site.id, "seo.robots");
-  const body = content.includes("Sitemap:") ? content : `${content.trim()}\n\nSitemap: https://${site.domain}/sitemap.xml\n`;
+  const body = content.includes("Sitemap:")
+    ? content
+    : `${content.trim()}\n\nSitemap: https://${site.domain}/sitemap.xml\n`;
   return new Response(body, { headers: { "Content-Type": "text/plain" } });
 }

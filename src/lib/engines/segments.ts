@@ -1,6 +1,13 @@
 /** Audience segment evaluation over a "facts" record per visitor (computed from events and CRM). */
-export interface SegmentCondition { field: string; op: "eq" | "neq" | "gte" | "lte" | "contains" | "in" | "exists"; value?: unknown }
-export interface SegmentGroup { match: "all" | "any"; conditions: SegmentCondition[] }
+export interface SegmentCondition {
+  field: string;
+  op: "eq" | "neq" | "gte" | "lte" | "contains" | "in" | "exists";
+  value?: unknown;
+}
+export interface SegmentGroup {
+  match: "all" | "any";
+  conditions: SegmentCondition[];
+}
 export type Facts = Record<string, unknown>;
 
 export const segmentFields = [
@@ -23,18 +30,37 @@ export const segmentFields = [
 export function evalSegCondition(c: SegmentCondition, f: Facts): boolean {
   const v = f[c.field];
   switch (c.op) {
-    case "exists": return v !== undefined && v !== null && v !== false;
-    case "eq": return String(v).toLowerCase() === String(c.value).toLowerCase();
-    case "neq": return String(v).toLowerCase() !== String(c.value).toLowerCase();
-    case "gte": return Number(v) >= Number(c.value);
-    case "lte": return Number(v) <= Number(c.value);
-    case "contains": return Array.isArray(v) ? v.some((x) => String(x).toLowerCase().includes(String(c.value).toLowerCase())) : String(v ?? "").toLowerCase().includes(String(c.value).toLowerCase());
-    case "in": return Array.isArray(c.value) && c.value.map((x) => String(x).toLowerCase()).includes(String(v).toLowerCase());
+    case "exists":
+      return v !== undefined && v !== null && v !== false;
+    case "eq":
+      return String(v).toLowerCase() === String(c.value).toLowerCase();
+    case "neq":
+      return String(v).toLowerCase() !== String(c.value).toLowerCase();
+    case "gte":
+      return Number(v) >= Number(c.value);
+    case "lte":
+      return Number(v) <= Number(c.value);
+    case "contains":
+      return Array.isArray(v)
+        ? v.some((x) => String(x).toLowerCase().includes(String(c.value).toLowerCase()))
+        : String(v ?? "")
+            .toLowerCase()
+            .includes(String(c.value).toLowerCase());
+    case "in":
+      return (
+        Array.isArray(c.value) &&
+        c.value.map((x) => String(x).toLowerCase()).includes(String(v).toLowerCase())
+      );
   }
 }
 
 export function inSegment(groups: SegmentGroup[], matchLogic: "all" | "any", f: Facts): boolean {
   if (!groups.length) return false;
-  const evalGroup = (g: SegmentGroup) => !g.conditions.length ? true : g.match === "any" ? g.conditions.some((c) => evalSegCondition(c, f)) : g.conditions.every((c) => evalSegCondition(c, f));
+  const evalGroup = (g: SegmentGroup) =>
+    !g.conditions.length
+      ? true
+      : g.match === "any"
+        ? g.conditions.some((c) => evalSegCondition(c, f))
+        : g.conditions.every((c) => evalSegCondition(c, f));
   return matchLogic === "any" ? groups.some(evalGroup) : groups.every(evalGroup);
 }

@@ -6,4 +6,7 @@ async function main() {
   console.log("✓ Database migrations applied");
   await pool.end();
 }
-main().catch((e) => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
