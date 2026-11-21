@@ -38,7 +38,7 @@ Size: S (< 1 day) · M (1–3 days) · L (3–7 days) · XL (1–2 weeks).
 |---|---|---|---|
 | 1.1 ✅ | Image optimisation on upload: convert JPEG/PNG to WebP (sharp), keep original, store width/height, generate 3 responsive sizes; `srcset` in section images | M | Uploading a PNG produces WebP variants; Lighthouse image audit passes |
 | 1.2 ✅ | Media picker modal in page builder (choose from library or upload) instead of pasting URLs | M | Image fields open the picker; alt text editable inline |
-| 1.3 | Rich-text editor for blog posts and product descriptions (TipTap), output passed through `sanitizeHtml` | M | Headings, lists, links, images, tables; paste-cleaning |
+| 1.3 ✅ | Rich-text editor for blog posts and product descriptions (TipTap), output passed through `sanitizeHtml` | M | Headings, lists, links, images, tables; paste-cleaning |
 | 1.4 | Mega-menu panels and icon menu design; drag-and-drop menu ordering with nesting | M | Menu screen supports nested drag-and-drop; mega panel renders on desktop and collapses on mobile |
 | 1.5 | Header/footer layout choices (3 header designs, 3 footer designs) selectable in settings | M | Switching design changes the public site without code |
 | 1.6 | Live page preview inside the builder (iframe of the draft page, refresh on save) | M | Editor shows preview side by side |

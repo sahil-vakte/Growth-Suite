@@ -1,3 +1,4 @@
+import { sanitizeHtml } from "../site/sanitize";
 /** Generic, site-scoped CRUD for every registered resource. */
 import { and, asc, count, desc, eq, getTableColumns, ilike, or, type SQL } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
@@ -75,8 +76,9 @@ function fieldSchema(f: FieldDef): z.ZodTypeAny {
       );
     case "relation":
       return z.preprocess(emptyToNull, opt(z.string().max(64)));
-    case "textarea":
     case "richtext":
+      return z.preprocess(emptyToNull, opt(z.string().max(200_000).transform(sanitizeHtml)));
+    case "textarea":
       return z.preprocess(emptyToNull, opt(z.string().max(200_000)));
     default:
       return z.preprocess(emptyToNull, opt(z.string().max(2000)));

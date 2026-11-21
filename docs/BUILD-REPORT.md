@@ -181,7 +181,7 @@ typecheck/lint/format/build, 45 smoke checks and 10 browser checks passed.
 ## Remaining scope
 
 All previously unfinished Epic 0 tasks are completed in this batch; previously completed tasks remain checked.
-The remaining roadmap, starting with 1.3 (rich-text editing), is unfinished.
+The remaining roadmap, starting with 1.4 (menu design and nested ordering), is unfinished.
 The shared UI foundation is refreshed; feature-specific editor redesigns remain
 part of their respective unfinished tasks. No live provider credentials were supplied.
 
@@ -196,3 +196,7 @@ Done: fresh middleware nonces, dynamic HTML, nonced Next scripts/GTM/JSON-LD, GT
 ## Task 0.10 - backup and restore runbook
 
 Done: docs/OPERATIONS.md covers database/storage consistency, key escrow, retention, verification, isolated restore, cutover and rollback. Rehearsed on 21 November 2026 with PostgreSQL 18.7 pg_dump/pg_restore into a new database: all 74 public/migration tables matched counts, 36 files matched SHA-256, the restored ENCRYPTION_KEY decrypted a test setting and 45/45 smoke checks passed on the isolated mock-mode app. The restore and checks took 12 seconds on this small local dataset; this is not a production RTO guarantee. No cloud-storage or off-site-provider drill was possible without deployment credentials. Original app and worker restored on port 3217. Typecheck, 55 local unit tests, migrations/seed, build, 45 smoke checks and 12 browser tests pass. No new migration.
+
+## Task 1.3 - rich-text editor
+
+Done: lazy-loaded TipTap editor for blog posts and product descriptions, with heading levels, emphasis, lists, links, media-library images/alt text, editable tables and undo/redo. Paste cleanup and server-side sanitizeHtml validation prevent raw unsafe markup from being saved; public rendering retains its second sanitisation pass. Product updates now keep content history. Nested media-dialog focus and server rendering are verified. Added the required TipTap packages; no schema migration or provider configuration. Typecheck/lint/format/build, 56 local unit tests (one Redis test runs in CI), 45 smoke checks and 13 browser tests pass.

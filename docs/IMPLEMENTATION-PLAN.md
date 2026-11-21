@@ -51,3 +51,6 @@ Generate a new nonce in Next middleware and pass the policy to both rendering an
 
 ## Task 0.10 - backup and restore operations
 Document consistent database/storage snapshots, separate key escrow, restore isolation, checksums, worker handling and cutover/rollback. Rehearse PostgreSQL custom-format dump/restore into a new database, copy local storage, compare all table counts/file hashes, verify restored-key decryption and run the smoke suite on a separate mock-mode server. No application or schema changes.
+
+## Task 1.3 - rich-text editing
+Use the required TipTap editor for blog/product richtext fields with headings, lists, links, media-library images, tables, undo/redo and paste cleanup. Apply sanitizeHtml during server-side validation as well as rendering. Improve nested media-dialog focus. No schema changes. TipTap React/ProseMirror, starter kit, image and table packages are necessary for this task; no UI framework added. Add persistence/public rendering and paste-safety browser tests.

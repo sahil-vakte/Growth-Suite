@@ -1107,6 +1107,7 @@ export const resources: ResourceDef[] = [
     feature: "shop",
     table: s.products as never,
     titleField: "name",
+    history: true,
     orderBy: { field: "sortOrder", dir: "asc" },
     fields: [
       t("name", "Name", { required: true, list: true }),

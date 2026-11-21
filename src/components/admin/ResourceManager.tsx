@@ -1,6 +1,11 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDialogFocus } from "./useDialogFocus";
+import dynamic from "next/dynamic";
+const RichTextEditor = dynamic(() => import("./RichTextEditor"), {
+  ssr: false,
+  loading: () => <p>Loading editor...</p>,
+});
 import type { FieldDef } from "@/lib/admin/resources";
 
 export interface RowAction {
@@ -398,12 +403,20 @@ function EditDrawer({
                   {f.required && " *"}
                 </label>
               )}
-              {f.type === "textarea" || f.type === "richtext" ? (
+              {f.type === "richtext" ? (
+                <RichTextEditor
+                  id={id}
+                  label={f.label}
+                  value={String(v ?? "")}
+                  readOnly={ro}
+                  onChange={(html) => set(f.key, html)}
+                />
+              ) : f.type === "textarea" ? (
                 <textarea
                   id={id}
                   value={String(v ?? "")}
                   readOnly={ro}
-                  rows={f.type === "richtext" ? 12 : 4}
+                  rows={4}
                   onChange={(e) => set(f.key, e.target.value)}
                 />
               ) : f.type === "json" ? (

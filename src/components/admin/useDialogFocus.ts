@@ -2,11 +2,12 @@
 import { useEffect, useRef } from "react";
 
 /** Keep keyboard interaction inside an open editing panel and restore focus on close. */
-export function useDialogFocus(onClose: () => void) {
+export function useDialogFocus(onClose: () => void, enabled = true) {
   const ref = useRef<HTMLDivElement>(null);
   const close = useRef(onClose);
   close.current = onClose;
   useEffect(() => {
+    if (!enabled) return;
     const previous = document.activeElement as HTMLElement | null;
     const panel = ref.current;
     const controls = () =>
@@ -19,6 +20,7 @@ export function useDialogFocus(onClose: () => void) {
     const keydown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
+        e.stopPropagation();
         close.current();
       }
       if (e.key !== "Tab") return;
@@ -42,6 +44,6 @@ export function useDialogFocus(onClose: () => void) {
       panel?.removeEventListener("keydown", keydown);
       previous?.focus();
     };
-  }, []);
+  }, [enabled]);
   return ref;
 }

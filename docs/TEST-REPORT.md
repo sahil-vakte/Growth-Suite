@@ -1,14 +1,14 @@
 # Latest verification - 21 November 2026
 
-- TypeScript: passed. ESLint: zero warnings. Prettier: passed.
-- Local unit tests: 50 passed, 1 skipped (real Redis test runs in hosted CI).
-- PostgreSQL integration: 1 passed (retention expiry, isolation and retry).
-- Production build: passed; migrations and seed passed.
+- TypeScript, ESLint (zero warnings), Prettier, production build, migrations and seed: passed.
+- Local unit tests: 56 passed; 1 Redis integration test runs in hosted CI.
+- PostgreSQL integration: 2 passed (retention and concurrent two-factor recovery-code consumption).
 - HTTP smoke: 45/45 passed against localhost:3217.
-- Headless Chromium: 10/10 passed, including mobile navigation and drawer keyboard focus.
-- UI screenshots reviewed at desktop and mobile sizes.
-- Hosted CI with real Redis previously passed all 41 tests before logging/retention additions; final combined run pending.
-- Live Sentry/provider delivery not exercised without credentials.
+- Headless Chromium: 13/13 passed, including MFA, CSP, rich text and mobile/keyboard workflows.
+- Desktop/mobile UI screenshots reviewed.
+- Hosted CI through Epic 0 passed: run 44873052961, including real Redis. Final rich-text commit will run the same pipeline.
+- Isolated restore: all 74 tables and 36 files verified, encryption-key round trip passed, restored server smoke 45/45.
+- Live provider delivery, cloud-storage restore and off-site recovery were not exercised without deployment credentials.
 
 ---
 
