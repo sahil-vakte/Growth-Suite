@@ -14,7 +14,7 @@ const schema = z.object({
 export async function POST(req: Request) {
   const site = await siteFromRequest(req);
   if (!site) return noSite();
-  if (rateLimited(`track:${clientIp(req)}`, 120, 60_000)) return tooMany();
+  if (await rateLimited(`track:${clientIp(req)}`, 120, 60_000)) return tooMany();
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return pjson({ error: "Bad event" }, 400);
   try {

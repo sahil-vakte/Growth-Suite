@@ -5,7 +5,7 @@ import { clientIp, noSite, pjson, rateLimited, siteFromRequest, tooMany } from "
 export async function POST(req: Request) {
   const site = await siteFromRequest(req);
   if (!site) return noSite();
-  if (rateLimited(`checkout:${clientIp(req)}`, 10, 60_000)) return tooMany();
+  if (await rateLimited(`checkout:${clientIp(req)}`, 10, 60_000)) return tooMany();
   const p = z
     .object({
       items: z

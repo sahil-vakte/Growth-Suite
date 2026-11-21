@@ -143,3 +143,12 @@ keyboard-accessible resource rows and focus-managed editing drawers. Public
 controls retain tenant colours with clearer focus and touch targets. Desktop and
 mobile screenshots reviewed. Typecheck, lint, build, 37 unit tests, 45 smoke checks
 and 10 browser tests passed. Feature-specific UI work remains in the roadmap.
+
+## Task 0.4 ? shared rate limiting
+
+Built: atomic Redis sliding windows across login, forms, chat, tracking, MCP token
+and existing protected routes; bounded memory fallback when REDIS_URL is blank.
+Keys use HMAC; Redis outages fail closed; operations have timeouts. No migration.
+Local: 40 unit tests passed, one Redis integration test skipped because no local
+Redis is configured. Hosted CI runs that test with two competing Node processes.
+Typecheck, lint, formatting, production build and 45 smoke checks passed.

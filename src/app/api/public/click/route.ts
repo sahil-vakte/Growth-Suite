@@ -8,7 +8,7 @@ import { clientIp, noSite, pjson, rateLimited, siteFromRequest, tooMany } from "
 export async function POST(req: Request) {
   const site = await siteFromRequest(req);
   if (!site) return noSite();
-  if (rateLimited(`click:${clientIp(req)}`, 30, 60_000)) return tooMany();
+  if (await rateLimited(`click:${clientIp(req)}`, 30, 60_000)) return tooMany();
   const p = z
     .object({
       kind: z.enum(["whatsapp", "call"]),

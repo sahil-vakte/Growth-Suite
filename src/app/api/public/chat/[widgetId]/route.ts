@@ -5,7 +5,7 @@ import { clientIp, noSite, pjson, rateLimited, siteFromRequest, tooMany } from "
 export async function POST(req: Request, { params }: { params: Promise<{ widgetId: string }> }) {
   const site = await siteFromRequest(req);
   if (!site) return noSite();
-  if (rateLimited(`chat:${clientIp(req)}`, 20, 60_000)) return tooMany();
+  if (await rateLimited(`chat:${clientIp(req)}`, 20, 60_000)) return tooMany();
   const p = z
     .object({
       message: z.string().min(1).max(1000),

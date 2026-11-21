@@ -23,7 +23,7 @@ export async function POST(req: Request, { params }: P) {
   const site = await siteFromRequest(req);
   if (!site) return noSite();
   const ip = clientIp(req);
-  if (rateLimited(`form:${ip}`, 20, 60_000)) return tooMany();
+  if (await rateLimited(`form:${ip}`, 20, 60_000)) return tooMany();
   const parsed = submitSchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return pjson({ error: "Invalid submission" }, 400);
   const { id } = await params;

@@ -9,16 +9,16 @@ import { errorResponse, json } from "@/lib/api";
 import { audit } from "@/lib/history";
 import { env } from "@/lib/env";
 
-const attempts = new Map<string, { n: number; at: number }>();
+import { rateLimited, resetRateLimit } from "@/lib/integrations/rateLimit";
+import { clientIp } from "@/lib/public";
 
 export async function POST(req: Request) {
   try {
     const { email, password } = z
       .object({ email: z.string().email(), password: z.string().min(1).max(200) })
       .parse(await req.json());
-    const key = `${email.toLowerCase()}|${req.headers.get("x-forwarded-for") ?? ""}`;
-    const a = attempts.get(key);
-    if (a && a.n >= 5 && Date.now() - a.at < 15 * 60_000)
+    const key = `login:${email.toLowerCase()}|${clientIp(req)}`;
+    if (await rateLimited(key, 5, 15 * 60_000))
       return json({ error: "Too many attempts. Please wait 15 minutes and try again." }, 429);
     const [user] = await db
       .select()
@@ -28,13 +28,9 @@ export async function POST(req: Request) {
     const ok =
       user && user.status === "active" && (await verifyPassword(password, user.passwordHash));
     if (!ok) {
-      attempts.set(key, {
-        n: (a && Date.now() - a.at < 15 * 60_000 ? a.n : 0) + 1,
-        at: Date.now(),
-      });
       return json({ error: "Email or password is not correct." }, 401);
     }
-    attempts.delete(key);
+    await resetRateLimit(key);
     await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
     const token = await signSession({ uid: user.id, ver: user.sessionVersion });
     (await cookies()).set(SESSION_COOKIE, token, {

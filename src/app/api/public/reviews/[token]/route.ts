@@ -6,7 +6,7 @@ import { clientIp, pjson, rateLimited, tooMany } from "@/lib/public";
 
 /** Customers submit a review via a share link. Reviews wait for moderation. */
 export async function POST(req: Request, { params }: { params: Promise<{ token: string }> }) {
-  if (rateLimited(`review:${clientIp(req)}`, 5, 60_000)) return tooMany();
+  if (await rateLimited(`review:${clientIp(req)}`, 5, 60_000)) return tooMany();
   const { token } = await params;
   const [link] = await db
     .select()

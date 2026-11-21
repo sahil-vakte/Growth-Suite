@@ -111,3 +111,21 @@ docs/                  SCOPE.pdf, INTEGRATIONS.pdf, BUILD-REPORT.md, TEST-REPORT
 
 After `npm run db:seed`: `ADMIN_EMAIL` / `ADMIN_PASSWORD` from `.env` (defaults `admin@example.com` /
 `ChangeMe-2026!` — change immediately).
+
+## Automated checks
+
+Run `npm run lint`, `npm run format:check`, `npm run typecheck` and `npm test`.
+Install Chromium with `npx playwright install chromium`, then run `npm run build`
+and `npm run test:e2e`. Playwright starts a production server when needed, or reuses
+an existing local server. `E2E_BASE_URL` overrides the browser test address.
+Use a seeded test database: smoke/browser checks create synthetic records.
+
+GitHub Actions runs the complete sequence on pull requests, including a real Redis
+service and a two-process shared-limit test. The `Verify application` check is
+required before merging to `main`.
+
+Set `REDIS_URL` on every production app instance to share rate limits. Use the same
+`SESSION_SECRET` across instances; keys are HMAC hashes. Blank `REDIS_URL` uses a
+bounded in-memory fallback suitable for one local instance. A configured store
+outage fails closed. Redis is infrastructure and remains active in mock integration
+mode. Configure your reverse proxy to replace incoming forwarded-IP headers.

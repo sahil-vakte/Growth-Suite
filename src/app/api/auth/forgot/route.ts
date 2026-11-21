@@ -11,7 +11,7 @@ import { clientIp, pjson, rateLimited, tooMany } from "@/lib/public";
 
 /** Always answers the same way, so it cannot be used to discover which emails have accounts. */
 export async function POST(req: Request) {
-  if (rateLimited(`forgot:${clientIp(req)}`, 5, 15 * 60_000)) return tooMany();
+  if (await rateLimited(`forgot:${clientIp(req)}`, 5, 15 * 60_000)) return tooMany();
   const p = z.object({ email: z.string().email() }).safeParse(await req.json().catch(() => null));
   const generic = {
     ok: true,

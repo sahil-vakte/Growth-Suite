@@ -8,7 +8,7 @@ import { audit } from "@/lib/history";
 import { clientIp, pjson, rateLimited, tooMany } from "@/lib/public";
 
 export async function POST(req: Request) {
-  if (rateLimited(`reset:${clientIp(req)}`, 10, 15 * 60_000)) return tooMany();
+  if (await rateLimited(`reset:${clientIp(req)}`, 10, 15 * 60_000)) return tooMany();
   const p = z
     .object({ token: z.string().min(20).max(200), password: z.string().max(200) })
     .safeParse(await req.json().catch(() => null));

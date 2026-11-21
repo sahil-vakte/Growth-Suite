@@ -8,7 +8,7 @@ import { clientIp, rateLimited } from "@/lib/public";
 
 /** OAuth 2.0 client-credentials grant: exchange client_id + client_secret for a 1-hour access token. */
 export async function POST(req: Request) {
-  if (rateLimited(`mcp-token:${clientIp(req)}`, 10, 60_000))
+  if (await rateLimited(`mcp-token:${clientIp(req)}`, 10, 60_000))
     return Response.json({ error: "slow_down" }, { status: 429 });
   const ct = req.headers.get("content-type") ?? "";
   const body = ct.includes("json")
