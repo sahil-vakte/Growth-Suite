@@ -1,0 +1,31 @@
+# Local or single-server deployment: app + worker + PostgreSQL.
+#   cp .env.example .env   (fill SESSION_SECRET, ENCRYPTION_KEY, CRON_SECRET, ADMIN_PASSWORD)
+#   docker compose up -d --build
+#   docker compose run --rm migrate
+services:
+  db:
+    image: postgres:16-alpine
+    environment: { POSTGRES_USER: growth, POSTGRES_PASSWORD: growth, POSTGRES_DB: growth_suite }
+    volumes: [dbdata:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD", "pg_isready", "-U", "growth"], interval: 5s, retries: 10 }
+  app:
+    build: .
+    env_file: .env
+    environment: { DATABASE_URL: "postgresql://growth:growth@db:5432/growth_suite" }
+    ports: ["3000:3000"]
+    volumes: [uploads:/app/storage]
+    depends_on: { db: { condition: service_healthy } }
+  worker:
+    build: .
+    env_file: .env
+    environment: { DATABASE_URL: "postgresql://growth:growth@db:5432/growth_suite" }
+    command: ["npx", "tsx", "scripts/worker.ts"]
+    depends_on: { db: { condition: service_healthy } }
+  migrate:
+    build: .
+    env_file: .env
+    environment: { DATABASE_URL: "postgresql://growth:growth@db:5432/growth_suite" }
+    command: ["sh", "-c", "npx tsx scripts/migrate.ts && npx tsx scripts/seed.ts"]
+    depends_on: { db: { condition: service_healthy } }
+    profiles: ["setup"]
+volumes: { dbdata: {}, uploads: {} }
