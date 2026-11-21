@@ -180,8 +180,8 @@ typecheck/lint/format/build, 45 smoke checks and 10 browser checks passed.
 
 ## Remaining scope
 
-Tasks 0.1-0.6 and 0.8-0.9 are completed in this batch; previously completed tasks remain checked.
-The remaining roadmap, starting with 0.10 (backup and restore runbook), is unfinished.
+All previously unfinished Epic 0 tasks are completed in this batch; previously completed tasks remain checked.
+The remaining roadmap, starting with 1.3 (rich-text editing), is unfinished.
 The shared UI foundation is refreshed; feature-specific editor redesigns remain
 part of their respective unfinished tasks. No live provider credentials were supplied.
 
@@ -192,3 +192,7 @@ Done: authenticator setup, encrypted TOTP secrets, ten hashed single-use recover
 ## Task 0.9 - Content-Security-Policy
 
 Done: fresh middleware nonces, dynamic HTML, nonced Next scripts/GTM/JSON-LD, GTM nonce propagation, blocked inline handlers and production eval. HTTPS content and theme CSS remain supported; optional connect origins are validated. No migration. Verified GTM bootstrap with an intercepted external payload, nonce rotation and rejection of hostile HTML scripts in Chromium, plus all existing flows. 55 local unit tests (one Redis test in CI), 45 smoke checks and 12 browser checks pass; typecheck, lint and build pass. Real customer GTM containers still need the live checklist.
+
+## Task 0.10 - backup and restore runbook
+
+Done: docs/OPERATIONS.md covers database/storage consistency, key escrow, retention, verification, isolated restore, cutover and rollback. Rehearsed on 21 November 2026 with PostgreSQL 18.7 pg_dump/pg_restore into a new database: all 74 public/migration tables matched counts, 36 files matched SHA-256, the restored ENCRYPTION_KEY decrypted a test setting and 45/45 smoke checks passed on the isolated mock-mode app. The restore and checks took 12 seconds on this small local dataset; this is not a production RTO guarantee. No cloud-storage or off-site-provider drill was possible without deployment credentials. Original app and worker restored on port 3217. Typecheck, 55 local unit tests, migrations/seed, build, 45 smoke checks and 12 browser tests pass. No new migration.

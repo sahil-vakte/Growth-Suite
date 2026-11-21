@@ -30,7 +30,7 @@ Size: S (< 1 day) · M (1–3 days) · L (3–7 days) · XL (1–2 weeks).
 | 0.7 ✅ | Password reset by email (token, 1-hour expiry, single use) and "change my password" screen | M | Flow tested; old sessions revoked after reset |
 | 0.8 ✅ | Two-factor authentication (TOTP) for admin users, enforceable per site | L | Admin can require 2FA; recovery codes; tested |
 | 0.9 ✅ | Content-Security-Policy header with nonces for inline scripts (GTM, JSON-LD) | M | CSP active in production without breaking GTM or the site runtime |
-| 0.10 | Backups & restore runbook in `docs/OPERATIONS.md` (database, storage, ENCRYPTION_KEY) | S | Document exists and restore is rehearsed once |
+| 0.10 ✅ | Backups & restore runbook in `docs/OPERATIONS.md` (database, storage, ENCRYPTION_KEY) | S | Document exists and restore is rehearsed once |
 
 ## Epic 1 — Website & content (P1–P2)
 

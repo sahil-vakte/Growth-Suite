@@ -48,3 +48,6 @@ Add encrypted account TOTP state, hashed single-use recovery codes and a per-sit
 
 ## Task 0.9 - nonce-based CSP
 Generate a new nonce in Next middleware and pass the policy to both rendering and the browser. Make HTML dynamic, nonce all JSON-LD/GTM scripts, propagate the nonce to GTM, and retain theme styling. Add optional validated HTTPS connect origins, policy unit tests and browser checks for hydration, nonce rotation, GTM and blocked injected scripts. No schema changes.
+
+## Task 0.10 - backup and restore operations
+Document consistent database/storage snapshots, separate key escrow, restore isolation, checksums, worker handling and cutover/rollback. Rehearse PostgreSQL custom-format dump/restore into a new database, copy local storage, compare all table counts/file hashes, verify restored-key decryption and run the smoke suite on a separate mock-mode server. No application or schema changes.
