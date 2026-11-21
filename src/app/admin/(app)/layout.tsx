@@ -22,6 +22,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .filter((g) => g.items.length);
   return (
     <div className="shell">
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
       <Sidebar
         appName={env.appName}
         groups={groups}
@@ -30,7 +33,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         userName={ctx.user.name}
         role={ctx.member.isPlatformAdmin ? "platform admin" : ctx.member.role}
       />
-      <main className="main">{children}</main>
+      <main className="main" id="main-content" tabIndex={-1}>
+        {children}
+      </main>
     </div>
   );
 }

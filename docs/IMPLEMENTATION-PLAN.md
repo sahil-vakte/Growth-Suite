@@ -12,3 +12,18 @@ Reports/traces must stay ignored because they can contain session and form data.
 Add a PostgreSQL-backed GitHub Actions job with all checks, plus the lint/format
 commands it requires. Format the existing source and fix lint findings without
 changing business behaviour. No schema changes. Run the full verification sequence.
+
+## Shared UI foundation
+Refresh admin navigation, login, dashboard and shared form/table styles; improve
+mobile layouts, focus visibility and editing-drawer keyboard behaviour. Preserve
+permissions and tenant theme settings. No schema changes. Validate all existing
+checks plus desktop/mobile navigation and drawer keyboard browser tests.
+
+## Task 0.4 — shared rate limiting
+Add a bounded memory limiter and an atomic Redis adapter. Await the shared limiter
+in all existing protected endpoints and replace the login-only process map.
+Use HMAC keys to keep email/IP values out of Redis, fail closed on configured-store
+outages, and use memory only when Redis is unconfigured. No schema changes.
+Test window boundaries locally and two competing Node processes against Redis in CI.
+The redis dependency is the maintained official Redis client; infrastructure is not
+mocked by INTEGRATIONS_MODE, so CI can test shared limits with mock business providers.

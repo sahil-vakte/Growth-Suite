@@ -131,3 +131,15 @@ production build, 45 smoke checks and 8 browser tests pass locally.
 0.2 Built: GitHub Actions runs the full sequence with isolated PostgreSQL and mock
 integrations on pull requests and main pushes. Hosted run and required-check
 enforcement are being verified; not marked complete yet. No schema changes.
+
+0.2 verified: GitHub Actions run 44869048837 passed on Ubuntu/PostgreSQL 16.
+The Verify application status check is required on main, including administrators.
+
+## Shared UI foundation
+
+Implemented: refreshed login, dashboard cards, searchable/collapsible navigation,
+compact mobile menu, shared form/table styling, responsive builder columns,
+keyboard-accessible resource rows and focus-managed editing drawers. Public
+controls retain tenant colours with clearer focus and touch targets. Desktop and
+mobile screenshots reviewed. Typecheck, lint, build, 37 unit tests, 45 smoke checks
+and 10 browser tests passed. Feature-specific UI work remains in the roadmap.

@@ -58,8 +58,9 @@ export default async function Dashboard() {
   ];
   return (
     <div>
-      <div className="topbar">
+      <div className="topbar dashboard-heading">
         <div>
+          <span className="eyebrow">Business overview</span>
           <h1>Welcome back, {ctx.user.name.split(" ")[0]}</h1>
           <p className="muted" style={{ margin: 0 }}>
             {ctx.site.name} · last 30 days
@@ -67,10 +68,10 @@ export default async function Dashboard() {
         </div>
         <span className="spacer" />
         <a className="btn" href={`/`} target="_blank">
-          View website ↗
+          View website
         </a>
       </div>
-      <div className="grid cols-4">
+      <div className="grid cols-4 dashboard-metrics">
         <div className="card">
           <div className="stat">{a.users.toLocaleString("en-GB")}</div>
           <div className="stat-label">Visitors</div>
@@ -88,15 +89,15 @@ export default async function Dashboard() {
         </div>
         <div className="card">
           <div className="stat">{a.conversionRate}%</div>
-          <div className="stat-label">Visitor → enquiry rate</div>
+          <div className="stat-label">Visitor conversion rate</div>
         </div>
       </div>
-      <div className="grid cols-2" style={{ marginTop: "1rem" }}>
+      <div className="grid cols-2 dashboard-content" style={{ marginTop: "1rem" }}>
         <div className="card">
           <div className="row">
             <h3 style={{ margin: 0 }}>Latest leads</h3>
             <span className="spacer" />
-            <Link href="/admin/crm">All leads →</Link>
+            <Link href="/admin/crm">View all leads</Link>
           </div>
           <table className="data" style={{ marginTop: ".75rem" }}>
             <tbody>
@@ -107,6 +108,7 @@ export default async function Dashboard() {
                     <div className="muted small">
                       {l.source} ·{" "}
                       {l.createdAt.toLocaleString("en-GB", {
+                        timeZone: ctx.site.timezone,
                         dateStyle: "medium",
                         timeStyle: "short",
                       })}
@@ -139,7 +141,13 @@ export default async function Dashboard() {
           <h3 style={{ marginTop: 0 }}>Set-up checklist</h3>
           {checklist.map((c) => (
             <p key={c.label} style={{ margin: ".45rem 0" }}>
-              {c.done ? "✅" : "⬜️"} <Link href={c.href}>{c.label}</Link>
+              <span
+                className={`check-item ${c.done ? "complete" : ""}`}
+                aria-label={c.done ? "Complete" : "To do"}
+              >
+                {c.done ? "Done" : "To do"}
+              </span>{" "}
+              <Link href={c.href}>{c.label}</Link>
             </p>
           ))}
           <h3>AI credits</h3>
@@ -148,8 +156,8 @@ export default async function Dashboard() {
           </p>
           {availableProviders()[0] === "mock" && (
             <p className="muted small">
-              AI runs in mock mode until an Anthropic or OpenAI key is added (see
-              docs/INTEGRATIONS.pdf).
+              You are using demo responses. Connect an AI provider in Integrations when you are
+              ready.
             </p>
           )}
         </div>
