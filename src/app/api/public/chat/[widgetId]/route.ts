@@ -1,8 +1,9 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { z } from "zod";
 import { chatTurn } from "@/lib/services/chatbot";
 import { clientIp, noSite, pjson, rateLimited, siteFromRequest, tooMany } from "@/lib/public";
 
-export async function POST(req: Request, { params }: { params: Promise<{ widgetId: string }> }) {
+async function handlePOST(req: Request, { params }: { params: Promise<{ widgetId: string }> }) {
   const site = await siteFromRequest(req);
   if (!site) return noSite();
   if (await rateLimited(`chat:${clientIp(req)}`, 20, 60_000)) return tooMany();
@@ -21,3 +22,5 @@ export async function POST(req: Request, { params }: { params: Promise<{ widgetI
     return pjson({ error: e instanceof Error ? e.message : "Chat unavailable" }, 404);
   }
 }
+
+export const POST = withApiLog("/api/public/chat/[widgetId]", "POST", handlePOST);

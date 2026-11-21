@@ -1,3 +1,4 @@
+import { setRequestSite } from "./requestContext";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { HttpError, requireAdmin, assertSameOrigin, type AdminContext } from "./auth/current";
@@ -28,7 +29,6 @@ export function errorResponse(e: unknown) {
   if (pg?.code === "23503")
     return json({ error: "This refers to something that no longer exists." }, 409);
   if (pg?.code === "22P02") return json({ error: "One of the values has the wrong format." }, 422);
-  console.error(e);
   return json({ error: "Something went wrong. Please try again." }, 500);
 }
 
@@ -43,6 +43,7 @@ export function adminRoute<P = Record<string, string>>(
     try {
       if (req.method !== "GET" && req.method !== "HEAD") await assertSameOrigin();
       const ctx = await requireAdmin(feature);
+      setRequestSite(ctx.site.id);
       const out = await handler(ctx, req, (await routeCtx?.params) ?? ({} as P));
       return out instanceof Response ? out : json(out ?? { ok: true });
     } catch (e) {

@@ -1,9 +1,10 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { blogPosts, pages } from "@/db/schema";
 import { siteForHost } from "@/lib/tenant";
 
-export async function GET(req: Request) {
+async function handleGET(req: Request) {
   const site = await siteForHost(req.headers.get("x-forwarded-host") ?? req.headers.get("host"));
   if (!site) return new Response("Not found", { status: 404 });
   const base = `https://${site.domain}`;
@@ -34,3 +35,5 @@ export async function GET(req: Request) {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${esc(u.loc)}</loc><lastmod>${u.lastmod.toISOString().slice(0, 10)}</lastmod><changefreq>${u.freq}</changefreq><priority>${u.pri}</priority></url>`).join("\n")}\n</urlset>\n`;
   return new Response(xml, { headers: { "Content-Type": "application/xml" } });
 }
+
+export const GET = withApiLog("/sitemap.xml", "GET", handleGET);

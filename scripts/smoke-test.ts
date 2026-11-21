@@ -53,6 +53,7 @@ async function main() {
   await check("Health endpoint reports database up", async () => {
     const r = await req("/api/health");
     assert(r.status === 200 && r.body.db === "up", `status ${r.status}`);
+    assert(/^[a-f0-9-]{36}$/.test(r.headers.get("x-request-id") ?? ""), "request ID missing");
   });
   await check("Public home page renders seeded sections", async () => {
     const r = await req("/", { auth: false });

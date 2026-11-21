@@ -1,3 +1,4 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
@@ -5,7 +6,7 @@ import { reviews, shareLinks } from "@/db/schema";
 import { clientIp, pjson, rateLimited, tooMany } from "@/lib/public";
 
 /** Customers submit a review via a share link. Reviews wait for moderation. */
-export async function POST(req: Request, { params }: { params: Promise<{ token: string }> }) {
+async function handlePOST(req: Request, { params }: { params: Promise<{ token: string }> }) {
   if (await rateLimited(`review:${clientIp(req)}`, 5, 60_000)) return tooMany();
   const { token } = await params;
   const [link] = await db
@@ -43,3 +44,5 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
     message: "Thank you! Your review will appear once it has been checked.",
   });
 }
+
+export const POST = withApiLog("/api/public/reviews/[token]", "POST", handlePOST);

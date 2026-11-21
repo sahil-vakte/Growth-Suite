@@ -1,3 +1,4 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { db } from "@/db";
 import { media } from "@/db/schema";
 import { adminRoute } from "@/lib/api";
@@ -28,56 +29,60 @@ const MAGIC: Record<string, (b: Buffer) => boolean> = {
 };
 
 /** Multipart upload; the file content is checked against its declared type (not just the extension). */
-export const POST = adminRoute("media", async (ctx, req) => {
-  const fd = await req.formData();
-  const files = fd.getAll("file").filter((f): f is File => typeof f !== "string");
-  if (!files.length) throw new HttpError(422, "Choose at least one file.");
-  const out = [];
-  for (const f of files.slice(0, 20)) {
-    const rule = LIMITS[f.type];
-    if (!rule) throw new HttpError(415, `${f.name}: this file type is not allowed.`);
-    if (f.size > rule.max) throw new HttpError(413, `${f.name} is too large.`);
-    const buf = Buffer.from(await f.arrayBuffer());
-    if (!MAGIC[f.type]?.(buf))
-      throw new HttpError(415, `${f.name} does not look like a real ${f.type} file.`);
-    const title = f.name.replace(/\.[^.]+$/, "");
-    if (rule.kind === "image" && f.type !== "image/gif") {
-      let opt;
-      try {
-        opt = await optimiseImage(ctx.site.id, f.name, buf);
-      } catch {
-        throw new HttpError(415, `${f.name} could not be read as an image.`);
+export const POST = withApiLog(
+  "/api/admin/media/upload",
+  "POST",
+  adminRoute("media", async (ctx, req) => {
+    const fd = await req.formData();
+    const files = fd.getAll("file").filter((f): f is File => typeof f !== "string");
+    if (!files.length) throw new HttpError(422, "Choose at least one file.");
+    const out = [];
+    for (const f of files.slice(0, 20)) {
+      const rule = LIMITS[f.type];
+      if (!rule) throw new HttpError(415, `${f.name}: this file type is not allowed.`);
+      if (f.size > rule.max) throw new HttpError(413, `${f.name} is too large.`);
+      const buf = Buffer.from(await f.arrayBuffer());
+      if (!MAGIC[f.type]?.(buf))
+        throw new HttpError(415, `${f.name} does not look like a real ${f.type} file.`);
+      const title = f.name.replace(/\.[^.]+$/, "");
+      if (rule.kind === "image" && f.type !== "image/gif") {
+        let opt;
+        try {
+          opt = await optimiseImage(ctx.site.id, f.name, buf);
+        } catch {
+          throw new HttpError(415, `${f.name} could not be read as an image.`);
+        }
+        const [m] = await db
+          .insert(media)
+          .values({
+            siteId: ctx.site.id,
+            kind: "image",
+            url: opt.url,
+            title,
+            mime: "image/webp",
+            size: opt.size,
+            width: opt.width,
+            height: opt.height,
+            variants: opt.variants,
+          })
+          .returning();
+        out.push(m);
+        continue;
       }
+      const stored = await storeFile(ctx.site.id, f.name, buf, f.type);
       const [m] = await db
         .insert(media)
         .values({
           siteId: ctx.site.id,
-          kind: "image",
-          url: opt.url,
+          kind: rule.kind === "audio" ? "document" : rule.kind,
+          url: stored.url,
           title,
-          mime: "image/webp",
-          size: opt.size,
-          width: opt.width,
-          height: opt.height,
-          variants: opt.variants,
+          mime: f.type,
+          size: f.size,
         })
         .returning();
       out.push(m);
-      continue;
     }
-    const stored = await storeFile(ctx.site.id, f.name, buf, f.type);
-    const [m] = await db
-      .insert(media)
-      .values({
-        siteId: ctx.site.id,
-        kind: rule.kind === "audio" ? "document" : rule.kind,
-        url: stored.url,
-        title,
-        mime: f.type,
-        size: f.size,
-      })
-      .returning();
-    out.push(m);
-  }
-  return { ok: true, files: out };
-});
+    return { ok: true, files: out };
+  }),
+);

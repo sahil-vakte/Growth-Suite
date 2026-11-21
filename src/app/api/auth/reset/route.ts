@@ -1,3 +1,4 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { createHash } from "node:crypto";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -7,7 +8,7 @@ import { hashPassword, passwordProblems } from "@/lib/auth/password";
 import { audit } from "@/lib/history";
 import { clientIp, pjson, rateLimited, tooMany } from "@/lib/public";
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   if (await rateLimited(`reset:${clientIp(req)}`, 10, 15 * 60_000)) return tooMany();
   const p = z
     .object({ token: z.string().min(20).max(200), password: z.string().max(200) })
@@ -40,3 +41,5 @@ export async function POST(req: Request) {
   await audit(null, u.email, "auth.password_reset");
   return pjson({ ok: true, message: "Password changed. You can now sign in." });
 }
+
+export const POST = withApiLog("/api/auth/reset", "POST", handlePOST);

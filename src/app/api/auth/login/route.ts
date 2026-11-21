@@ -1,3 +1,4 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { cookies } from "next/headers";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -12,7 +13,7 @@ import { env } from "@/lib/env";
 import { rateLimited, resetRateLimit } from "@/lib/integrations/rateLimit";
 import { clientIp } from "@/lib/public";
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   try {
     const { email, password } = z
       .object({ email: z.string().email(), password: z.string().min(1).max(200) })
@@ -46,3 +47,5 @@ export async function POST(req: Request) {
     return errorResponse(e);
   }
 }
+
+export const POST = withApiLog("/api/auth/login", "POST", handlePOST);

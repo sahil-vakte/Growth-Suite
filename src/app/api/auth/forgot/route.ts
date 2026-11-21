@@ -1,3 +1,4 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { createHash } from "node:crypto";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -10,7 +11,7 @@ import { escapeHtml } from "@/lib/engines/templating";
 import { clientIp, pjson, rateLimited, tooMany } from "@/lib/public";
 
 /** Always answers the same way, so it cannot be used to discover which emails have accounts. */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   if (await rateLimited(`forgot:${clientIp(req)}`, 5, 15 * 60_000)) return tooMany();
   const p = z.object({ email: z.string().email() }).safeParse(await req.json().catch(() => null));
   const generic = {
@@ -39,3 +40,5 @@ export async function POST(req: Request) {
   // In mock mode (no email provider) the link is returned so the flow can be tested end-to-end.
   return pjson(env.forceMock ? { ...generic, devResetUrl: url } : generic);
 }
+
+export const POST = withApiLog("/api/auth/forgot", "POST", handlePOST);

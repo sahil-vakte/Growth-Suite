@@ -1,3 +1,4 @@
+import { setRequestSite } from "./requestContext";
 /** Helpers for public (visitor-facing) endpoints. */
 import { NextResponse } from "next/server";
 import { siteForHost, type SiteRow } from "./tenant";
@@ -12,6 +13,7 @@ export function clientIp(req: Request): string {
 
 export async function siteFromRequest(req: Request): Promise<SiteRow | null> {
   const s = await siteForHost(req.headers.get("x-forwarded-host") ?? req.headers.get("host"));
+  if (s) setRequestSite(s.id);
   return s && s.status === "active" ? s : null;
 }
 

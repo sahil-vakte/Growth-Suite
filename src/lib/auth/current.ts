@@ -1,3 +1,4 @@
+import { setRequestSite } from "../requestContext";
 import { cookies, headers } from "next/headers";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
@@ -67,6 +68,7 @@ export async function getAdminContext(): Promise<AdminContext | null> {
         mcpAccess: true,
         isPlatformAdmin: true,
       };
+  setRequestSite(site.id);
   return { user, site, member, actor: user.email, sites: all };
 }
 

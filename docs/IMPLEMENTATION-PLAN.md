@@ -27,3 +27,11 @@ outages, and use memory only when Redis is unconfigured. No schema changes.
 Test window boundaries locally and two competing Node processes against Redis in CI.
 The redis dependency is the maintained official Redis client; infrastructure is not
 mocked by INTEGRATIONS_MODE, so CI can test shared limits with mock business providers.
+
+## Task 0.5 — structured API error reporting
+Wrap every API handler with request context and a generated request ID. Log only
+an explicit allowlist (route template, site ID, method, status, request ID), never
+request values, exception messages or SQL. Attach X-Request-ID to responses.
+Add optional Sentry adapter with default integrations disabled and the same safe
+fields; use recordMock when disabled/mock. Add tests for concurrency and privacy.
+No schema changes. Dependencies pino and @sentry/node are required by the task.

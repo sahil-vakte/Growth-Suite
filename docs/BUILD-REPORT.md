@@ -152,3 +152,17 @@ Keys use HMAC; Redis outages fail closed; operations have timeouts. No migration
 Local: 40 unit tests passed, one Redis integration test skipped because no local
 Redis is configured. Hosted CI runs that test with two competing Node processes.
 Typecheck, lint, formatting, production build and 45 smoke checks passed.
+
+0.4 verified: hosted run 44870007164 passed with real Redis. All 41 unit/integration
+tests, 45 smoke checks and 10 Chromium tests passed. The two-process test permits
+exactly 8 of 24 competing requests against a shared quota of 8. Marked complete.
+
+## Task 0.5 ? structured API errors
+
+Done: all route handlers attach generated X-Request-ID values. Pino emits only
+route templates, method, status, tenant ID (null before resolution) and request ID.
+Sentry is optional, uses the same allowlist and strips SDK-added personal context.
+No exception text, SQL, request values or credentials are logged. Framework control
+flow is preserved. No migration. 46 local tests passed (one real-Redis test runs
+in CI), typecheck/lint/build and 45 smoke + 10 browser checks passed. Live Sentry
+delivery was not exercised because no DSN was supplied; adapter/privacy tests pass.

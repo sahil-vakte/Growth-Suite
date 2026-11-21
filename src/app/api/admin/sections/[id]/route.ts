@@ -1,3 +1,4 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { and, eq, gt, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
@@ -31,63 +32,71 @@ const audience = z
   })
   .nullable();
 
-export const PATCH = adminRoute<{ id: string }>("content", async (ctx, req, p) => {
-  const { sec } = await load(ctx, p.id);
-  const b = z
-    .object({
-      content: z.record(z.unknown()).optional(),
-      style: z.record(z.unknown()).nullable().optional(),
-      name: z.string().max(120).nullable().optional(),
-      visible: z.boolean().optional(),
-      audienceRule: audience.optional(),
-      action: z.enum(["duplicate", "save_template"]).optional(),
-      templateName: z.string().max(120).optional(),
-    })
-    .parse(await readJson(req));
-  if (b.action === "duplicate") {
-    await db
-      .update(sections)
-      .set({ position: sql`${sections.position} + 1` })
-      .where(and(eq(sections.pageId, sec.pageId), gt(sections.position, sec.position)));
-    const [copy] = await db
-      .insert(sections)
-      .values({
-        siteId: sec.siteId,
-        pageId: sec.pageId,
-        position: sec.position + 1,
-        layoutKey: sec.layoutKey,
-        name: sec.name,
-        content: sec.content,
-        style: sec.style,
-        visible: sec.visible,
-        audienceRule: sec.audienceRule,
+export const PATCH = withApiLog(
+  "/api/admin/sections/[id]",
+  "PATCH",
+  adminRoute<{ id: string }>("content", async (ctx, req, p) => {
+    const { sec } = await load(ctx, p.id);
+    const b = z
+      .object({
+        content: z.record(z.unknown()).optional(),
+        style: z.record(z.unknown()).nullable().optional(),
+        name: z.string().max(120).nullable().optional(),
+        visible: z.boolean().optional(),
+        audienceRule: audience.optional(),
+        action: z.enum(["duplicate", "save_template"]).optional(),
+        templateName: z.string().max(120).optional(),
       })
-      .returning();
-    return copy;
-  }
-  if (b.action === "save_template") {
-    const [t] = await db
-      .insert(sectionTemplates)
-      .values({
-        siteId: sec.siteId,
-        name: b.templateName || sec.name || sec.layoutKey,
-        layoutKey: sec.layoutKey,
-        content: sec.content,
-        style: sec.style,
-      })
-      .returning();
-    return { ok: true, templateId: t.id };
-  }
-  await snapshot(ctx.site.id, "sections", sec.id, sec, "update", ctx.actor);
-  const { action: _a, templateName: _t, ...data } = b;
-  const [u] = await db.update(sections).set(data).where(eq(sections.id, sec.id)).returning();
-  await stamp(sec.pageId, ctx.actor, ctx.member.isPlatformAdmin ? "admin" : ctx.member.role);
-  return u;
-});
+      .parse(await readJson(req));
+    if (b.action === "duplicate") {
+      await db
+        .update(sections)
+        .set({ position: sql`${sections.position} + 1` })
+        .where(and(eq(sections.pageId, sec.pageId), gt(sections.position, sec.position)));
+      const [copy] = await db
+        .insert(sections)
+        .values({
+          siteId: sec.siteId,
+          pageId: sec.pageId,
+          position: sec.position + 1,
+          layoutKey: sec.layoutKey,
+          name: sec.name,
+          content: sec.content,
+          style: sec.style,
+          visible: sec.visible,
+          audienceRule: sec.audienceRule,
+        })
+        .returning();
+      return copy;
+    }
+    if (b.action === "save_template") {
+      const [t] = await db
+        .insert(sectionTemplates)
+        .values({
+          siteId: sec.siteId,
+          name: b.templateName || sec.name || sec.layoutKey,
+          layoutKey: sec.layoutKey,
+          content: sec.content,
+          style: sec.style,
+        })
+        .returning();
+      return { ok: true, templateId: t.id };
+    }
+    await snapshot(ctx.site.id, "sections", sec.id, sec, "update", ctx.actor);
+    const { action: _a, templateName: _t, ...data } = b;
+    const [u] = await db.update(sections).set(data).where(eq(sections.id, sec.id)).returning();
+    await stamp(sec.pageId, ctx.actor, ctx.member.isPlatformAdmin ? "admin" : ctx.member.role);
+    return u;
+  }),
+);
 
-export const DELETE = adminRoute<{ id: string }>("content", async (ctx, _req, p) => {
-  const { sec } = await load(ctx, p.id);
-  await snapshot(ctx.site.id, "sections", sec.id, sec, "delete", ctx.actor);
-  await db.delete(sections).where(eq(sections.id, sec.id));
-  return { ok: true };
-});
+export const DELETE = withApiLog(
+  "/api/admin/sections/[id]",
+  "DELETE",
+  adminRoute<{ id: string }>("content", async (ctx, _req, p) => {
+    const { sec } = await load(ctx, p.id);
+    await snapshot(ctx.site.id, "sections", sec.id, sec, "delete", ctx.actor);
+    await db.delete(sections).where(eq(sections.id, sec.id));
+    return { ok: true };
+  }),
+);

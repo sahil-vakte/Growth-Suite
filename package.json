@@ -20,12 +20,14 @@
     "format:check": "prettier --check src scripts tests *.ts *.mjs *.json"
   },
   "dependencies": {
+    "@sentry/node": "^11.16.0",
     "bcryptjs": "^2.4.3",
     "drizzle-orm": "^0.45.4",
     "jose": "^5.9.6",
     "next": "15.5.29",
     "nodemailer": "^6.9.16",
     "pg": "^8.23.1",
+    "pino": "^10.4.0",
     "react": "19.1.10",
     "react-dom": "19.1.10",
     "redis": "^6.3.1",
