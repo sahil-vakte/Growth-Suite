@@ -13,7 +13,8 @@
     "db:seed": "tsx --env-file=.env scripts/seed.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:smoke": "tsx --env-file=.env scripts/smoke-test.ts"
+    "test:smoke": "tsx --env-file=.env scripts/smoke-test.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -28,6 +29,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.10.0",
     "@types/nodemailer": "^6.4.17",

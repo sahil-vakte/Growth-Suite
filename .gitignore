@@ -9,3 +9,5 @@ storage
 *.log
 smoke-results.json
 tsconfig.tsbuildinfo
+playwright-report/
+test-results/

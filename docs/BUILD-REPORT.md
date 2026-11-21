@@ -114,3 +114,11 @@ Live-provider testing (real WhatsApp, Meta, Google, payments, AI) is the next st
 - Lead pipeline: `src/lib/services/leads.ts`, `forms.ts`, `whatsapp.ts`, `conversions.ts`, `scheduler.ts`
 - Admin resources (one definition drives list, form, validation, API): `src/lib/admin/resources.ts`
 - Data model: `src/db/schema.ts`
+
+## Task 0.1 ? browser regression suite
+
+Done: headless Chromium covers login, page-builder add/edit/reorder/publish,
+public form and CRM capture, popup dismissal, chat, booking, lead notes/stages,
+and social submit/return/approve. Playwright has CI-safe serial execution, retries
+and failure traces. No schema changes. Typecheck, 37 unit tests, migrations/seed,
+build, 45 smoke checks and 8 browser tests passed.

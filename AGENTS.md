@@ -21,7 +21,7 @@ Size: S (< 1 day) · M (1–3 days) · L (3–7 days) · XL (1–2 weeks).
 
 | # | Task | Size | Done when |
 |---|---|---|---|
-| 0.1 | Browser end-to-end tests with Playwright for: login, page builder (add/edit/reorder/publish), form submit on the public site, popup shows and closes, chat widget conversation, booking flow, CRM lead detail, social approval flow | L | `npm run test:e2e` runs headless in CI and passes |
+| 0.1 ? | Browser end-to-end tests with Playwright for: login, page builder (add/edit/reorder/publish), form submit on the public site, popup shows and closes, chat widget conversation, booking flow, CRM lead detail, social approval flow | L | `npm run test:e2e` runs headless in CI and passes |
 | 0.2 | CI pipeline (GitHub Actions): install, typecheck, lint, unit tests, build, start Postgres service, migrate, seed, smoke test, Playwright | M | Every PR runs the full pipeline; failures block merge |
 | 0.3 | ESLint + Prettier config and fix all warnings | S | `npm run lint` clean |
 | 0.4 | Shared rate limiting (Redis/Upstash adapter with in-memory fallback) for login, public forms, chat, track, MCP token | M | Limits hold across 2+ app instances (test with two processes) |
