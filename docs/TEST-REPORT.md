@@ -1,3 +1,17 @@
+# Latest verification - 21 November 2026
+
+- TypeScript: passed. ESLint: zero warnings. Prettier: passed.
+- Local unit tests: 50 passed, 1 skipped (real Redis test runs in hosted CI).
+- PostgreSQL integration: 1 passed (retention expiry, isolation and retry).
+- Production build: passed; migrations and seed passed.
+- HTTP smoke: 45/45 passed against localhost:3217.
+- Headless Chromium: 10/10 passed, including mobile navigation and drawer keyboard focus.
+- UI screenshots reviewed at desktop and mobile sizes.
+- Hosted CI with real Redis previously passed all 41 tests before logging/retention additions; final combined run pending.
+- Live Sentry/provider delivery not exercised without credentials.
+
+---
+
 # Test report
 
 Run on 21 November 2026 02:36 UTC on a fresh PostgreSQL 16 database, Node v22.23.5, Next.js 15.5 production build, `INTEGRATIONS_MODE=mock` (no real messages, payments or AI calls).

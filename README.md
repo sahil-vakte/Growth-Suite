@@ -129,3 +129,18 @@ Set `REDIS_URL` on every production app instance to share rate limits. Use the s
 bounded in-memory fallback suitable for one local instance. A configured store
 outage fails closed. Redis is infrastructure and remains active in mock integration
 mode. Configure your reverse proxy to replace incoming forwarded-IP headers.
+
+## Logs and analytics retention
+
+API responses include `X-Request-ID`. Error logs contain only that ID, a source-code
+route template, HTTP method/status and the resolved site ID (null when unresolved).
+Request values, SQL and exception messages are not logged. Optional `SENTRY_DSN`
+reports the same metadata; mock integration mode records it locally instead.
+
+`ANALYTICS_RETENTION_MONTHS` defaults to 12. The daily scheduler keeps the current
+UTC month plus that many complete prior months, deleting older raw events in
+batches of 1,000. Set 0 to disable deletion, or an integer up to 120. Analytics
+queries are unchanged; historical raw events outside the retention window will no
+longer be available. Lead records are unaffected. Run the worker or cron endpoint
+for retention jobs to execute. Run `npm run test:db` after migrations to verify
+retention isolation and retry safety against a test PostgreSQL database.

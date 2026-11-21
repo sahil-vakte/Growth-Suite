@@ -166,3 +166,21 @@ No exception text, SQL, request values or credentials are logged. Framework cont
 flow is preserved. No migration. 46 local tests passed (one real-Redis test runs
 in CI), typecheck/lint/build and 45 smoke + 10 browser checks passed. Live Sentry
 delivery was not exercised because no DSN was supplied; adapter/privacy tests pass.
+
+## Task 0.6 ? analytics retention
+
+Done: configurable daily jobs prune expired raw events in 1,000-row tenant-scoped
+batches, with idempotent scheduling and retry-safe deletion. Zero disables pruning.
+Migration 0002_slow_onslaught adds nullable sites.analytics_retention_last_run_at.
+Analytics queries are unchanged. Real PostgreSQL tests prove expiry boundaries,
+tenant isolation and retries. Retention exposed an existing unstable default-site
+selection; it now honours authorised workspace selection and uses a deterministic
+fallback. 50 local unit tests passed (one Redis test runs in CI), one database test,
+typecheck/lint/format/build, 45 smoke checks and 10 browser checks passed.
+
+## Remaining scope
+
+Tasks 0.1-0.6 are completed in this batch; previously completed tasks remain checked.
+The remaining roadmap, starting with 0.8 (two-factor authentication), is unfinished.
+The shared UI foundation is refreshed; feature-specific editor redesigns remain
+part of their respective unfinished tasks. No live provider credentials were supplied.

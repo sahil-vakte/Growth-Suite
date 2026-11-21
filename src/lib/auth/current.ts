@@ -1,3 +1,5 @@
+import { chooseCurrentSite } from "../engines/currentSite";
+import { env } from "../env";
 import { setRequestSite } from "../requestContext";
 import { cookies, headers } from "next/headers";
 import { and, eq } from "drizzle-orm";
@@ -47,7 +49,7 @@ export async function getAdminContext(): Promise<AdminContext | null> {
       domain: s.domain,
     }));
   const wanted = jar.get(SITE_COOKIE)?.value;
-  const chosenId = all.find((s) => s.id === wanted)?.id ?? all[0]?.id;
+  const chosenId = chooseCurrentSite(all, wanted, env.defaultSiteDomain);
   if (!chosenId) return null;
   const [site] = await db.select().from(sites).where(eq(sites.id, chosenId)).limit(1);
   const m = rows.find((r) => r.s.id === chosenId)?.m;

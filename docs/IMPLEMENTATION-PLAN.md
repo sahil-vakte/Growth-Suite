@@ -35,3 +35,10 @@ request values, exception messages or SQL. Attach X-Request-ID to responses.
 Add optional Sentry adapter with default integrations disabled and the same safe
 fields; use recordMock when disabled/mock. Add tests for concurrency and privacy.
 No schema changes. Dependencies pino and @sentry/node are required by the task.
+
+## Task 0.6 — analytics retention
+Add a nullable last-retention-run timestamp to sites and generate a new migration.
+Schedule one idempotent daily job per site. Delete raw analytics in bounded batches,
+scoped by site, keeping the current month plus configured complete prior months.
+Zero disables retention. Add pure date/config tests and a real PostgreSQL isolation/
+retry test, run after migrations in CI. Existing analytics queries stay unchanged.

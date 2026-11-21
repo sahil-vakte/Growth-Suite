@@ -17,7 +17,8 @@
     "test:e2e": "playwright test",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write src scripts tests *.ts *.mjs *.json",
-    "format:check": "prettier --check src scripts tests *.ts *.mjs *.json"
+    "format:check": "prettier --check src scripts tests *.ts *.mjs *.json",
+    "test:db": "tsx --env-file=.env node_modules/vitest/vitest.mjs run --config vitest.integration.config.ts"
   },
   "dependencies": {
     "@sentry/node": "^11.16.0",

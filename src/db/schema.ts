@@ -39,6 +39,7 @@ export const sites = pgTable("sites", {
   plan: text().notNull().default("starter"),
   status: text().notNull().default("active"),
   region: text().notNull().default("eu"),
+  analyticsRetentionLastRunAt: ts(),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });

@@ -1,0 +1,1 @@
+ALTER TABLE "sites" ADD COLUMN "analytics_retention_last_run_at" timestamp with time zone;
