@@ -45,3 +45,6 @@ retry test, run after migrations in CI. Existing analytics queries stay unchange
 
 ## Task 0.8 - administrator two-factor authentication
 Add encrypted account TOTP state, hashed single-use recovery codes and a per-site admin policy. Generate an additive migration. Gate both pages and APIs; enrolment revokes previous sessions. Test RFC vectors, concurrent replay prevention, account isolation and the browser setup/sign-in flow. No external provider or new dependency is needed.
+
+## Task 0.9 - nonce-based CSP
+Generate a new nonce in Next middleware and pass the policy to both rendering and the browser. Make HTML dynamic, nonce all JSON-LD/GTM scripts, propagate the nonce to GTM, and retain theme styling. Add optional validated HTTPS connect origins, policy unit tests and browser checks for hydration, nonce rotation, GTM and blocked injected scripts. No schema changes.

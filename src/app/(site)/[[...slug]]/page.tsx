@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { currentSite, findRedirect, loadPage } from "@/lib/site/pageData";
@@ -69,6 +70,7 @@ export default async function PublicPage({ params, searchParams }: Props) {
       )}
       {schema ? (
         <script
+          nonce={(await headers()).get("x-nonce") ?? undefined}
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }}
         />
