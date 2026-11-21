@@ -8,8 +8,9 @@ import Sidebar from "@/components/admin/Sidebar";
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const ctx = await getAdminContext();
+  const ctx = await getAdminContext(true);
   if (!ctx) redirect("/admin/login");
+  if (ctx.twoFactorRequired) redirect("/admin/security");
   const groups = adminNav
     .map((g) => ({
       label: g.label,

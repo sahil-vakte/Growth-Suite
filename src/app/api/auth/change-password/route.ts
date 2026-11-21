@@ -31,13 +31,17 @@ export const POST = withApiLog(
       })
       .where(eq(users.id, ctx.user.id))
       .returning();
-    (await cookies()).set(SESSION_COOKIE, await signSession({ uid: u.id, ver: u.sessionVersion }), {
-      httpOnly: true,
-      secure: env.appUrl.startsWith("https"),
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7,
-    });
+    (await cookies()).set(
+      SESSION_COOKIE,
+      await signSession({ uid: u.id, ver: u.sessionVersion, mfa: ctx.twoFactorVerified }),
+      {
+        httpOnly: true,
+        secure: env.appUrl.startsWith("https"),
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+      },
+    );
     await audit(null, ctx.actor, "auth.password_change");
     return { ok: true, message: "Password changed. Other devices have been signed out." };
   }),

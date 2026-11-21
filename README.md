@@ -144,3 +144,6 @@ queries are unchanged; historical raw events outside the retention window will n
 longer be available. Lead records are unaffected. Run the worker or cron endpoint
 for retention jobs to execute. Run `npm run test:db` after migrations to verify
 retention isolation and retry safety against a test PostgreSQL database.
+
+### Two-factor authentication
+Open My account > Manage two-factor authentication. Enter your password, add the displayed time-based setup key to an authenticator and verify a code. Save the ten single-use recovery codes shown once. Enabling or disabling signs out other sessions. Site administrators can require enrolment for their site's administrators; editor and sales roles remain optional. Encrypted secrets require the same backed-up ENCRYPTION_KEY after restore. Codes follow RFC 6238 (SHA-1, six digits, 30 seconds); setup expires after ten minutes. No provider keys or external service is used.

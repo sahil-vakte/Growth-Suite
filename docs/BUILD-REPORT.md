@@ -180,7 +180,11 @@ typecheck/lint/format/build, 45 smoke checks and 10 browser checks passed.
 
 ## Remaining scope
 
-Tasks 0.1-0.6 are completed in this batch; previously completed tasks remain checked.
-The remaining roadmap, starting with 0.8 (two-factor authentication), is unfinished.
+Tasks 0.1-0.6 and 0.8 are completed in this batch; previously completed tasks remain checked.
+The remaining roadmap, starting with 0.9 (Content-Security-Policy), is unfinished.
 The shared UI foundation is refreshed; feature-specific editor redesigns remain
 part of their respective unfinished tasks. No live provider credentials were supplied.
+
+## Task 0.8 - two-factor authentication
+
+Done: authenticator setup, encrypted TOTP secrets, ten hashed single-use recovery codes, password-confirmed removal and per-site administrator enforcement. Required enrolment gates pages and APIs; enabling/disabling revokes other sessions. Row locks prevent concurrent code replay. Existing password reset does not remove the second factor. Additive migration 0003_breezy_captain_britain. RFC 6238 vectors, replay/account isolation, browser enrolment, recovery login, policy permissions and old-session rejection pass. Verification: 53 local unit tests (Redis test runs in CI), 2 database tests, 45 smoke checks and 11 browser tests; typecheck, lint and production build passed. No external service or new credentials required.

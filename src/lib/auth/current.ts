@@ -1,4 +1,5 @@
 import { chooseCurrentSite } from "../engines/currentSite";
+import { needsTwoFactor } from "../engines/totp";
 import { env } from "../env";
 import { setRequestSite } from "../requestContext";
 import { cookies, headers } from "next/headers";
@@ -17,6 +18,8 @@ export interface AdminContext {
   site: SiteRow;
   member: Member & { socialApprove: boolean; mcpAccess: boolean };
   actor: string; // email used in audit trails
+  twoFactorRequired: boolean;
+  twoFactorVerified: boolean;
   sites: { id: string; name: string; domain: string }[];
 }
 
@@ -29,7 +32,7 @@ export class HttpError extends Error {
   }
 }
 
-export async function getAdminContext(): Promise<AdminContext | null> {
+export async function getAdminContext(allowTwoFactorSetup = false): Promise<AdminContext | null> {
   const jar = await cookies();
   const claims = await readSession(jar.get(SESSION_COOKIE)?.value);
   if (!claims) return null;
@@ -71,11 +74,30 @@ export async function getAdminContext(): Promise<AdminContext | null> {
         isPlatformAdmin: true,
       };
   setRequestSite(site.id);
-  return { user, site, member, actor: user.email, sites: all };
+  const twoFactorRequired = needsTwoFactor(
+    !!user.totpSecretEnc,
+    site.requireAdminTwoFactor,
+    member.role === "admin" || !!member.isPlatformAdmin,
+    claims.mfa === true,
+  );
+  // Enrolled accounts may never bypass verification, including the setup API.
+  if (twoFactorRequired && (!allowTwoFactorSetup || !!user.totpSecretEnc)) return null;
+  return {
+    user,
+    site,
+    member,
+    actor: user.email,
+    sites: all,
+    twoFactorRequired,
+    twoFactorVerified: claims.mfa === true,
+  };
 }
 
-export async function requireAdmin(feature?: Feature): Promise<AdminContext> {
-  const ctx = await getAdminContext();
+export async function requireAdmin(
+  feature?: Feature,
+  allowTwoFactorSetup = false,
+): Promise<AdminContext> {
+  const ctx = await getAdminContext(allowTwoFactorSetup);
   if (!ctx) throw new HttpError(401, "Please sign in.");
   if (feature && !canAccess(ctx.member, feature))
     throw new HttpError(403, "You do not have access to this area.");

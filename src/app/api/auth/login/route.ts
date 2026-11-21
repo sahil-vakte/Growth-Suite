@@ -12,11 +12,18 @@ import { env } from "@/lib/env";
 
 import { rateLimited, resetRateLimit } from "@/lib/integrations/rateLimit";
 import { clientIp } from "@/lib/public";
+import { consumeSecondFactor } from "@/lib/services/twoFactor";
+import { assertSameOrigin } from "@/lib/auth/current";
 
 async function handlePOST(req: Request) {
   try {
-    const { email, password } = z
-      .object({ email: z.string().email(), password: z.string().min(1).max(200) })
+    await assertSameOrigin();
+    const { email, password, code } = z
+      .object({
+        email: z.string().email(),
+        password: z.string().min(1).max(200),
+        code: z.string().max(40).optional(),
+      })
       .parse(await req.json());
     const key = `login:${email.toLowerCase()}|${clientIp(req)}`;
     if (await rateLimited(key, 5, 15 * 60_000))
@@ -31,9 +38,28 @@ async function handlePOST(req: Request) {
     if (!ok) {
       return json({ error: "Email or password is not correct." }, 401);
     }
+    if (user.totpSecretEnc) {
+      if (!code)
+        return json(
+          { error: "Enter a code from your authenticator or a recovery code.", twoFactor: true },
+          401,
+        );
+      if (!(await consumeSecondFactor(user.id, user.sessionVersion, code.trim())))
+        return json(
+          {
+            error: "That code is invalid or has already been used. Try a new code.",
+            twoFactor: true,
+          },
+          401,
+        );
+    }
     await resetRateLimit(key);
     await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
-    const token = await signSession({ uid: user.id, ver: user.sessionVersion });
+    const token = await signSession({
+      uid: user.id,
+      ver: user.sessionVersion,
+      mfa: !!user.totpSecretEnc,
+    });
     (await cookies()).set(SESSION_COOKIE, token, {
       httpOnly: true,
       secure: env.appUrl.startsWith("https"),

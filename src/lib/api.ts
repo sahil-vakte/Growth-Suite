@@ -38,11 +38,12 @@ type Handler<P> = (ctx: AdminContext, req: Request, params: P) => Promise<Respon
 export function adminRoute<P = Record<string, string>>(
   feature: Feature | undefined,
   handler: Handler<P>,
+  allowTwoFactorSetup = false,
 ) {
   return async (req: Request, routeCtx: { params: Promise<P> }) => {
     try {
       if (req.method !== "GET" && req.method !== "HEAD") await assertSameOrigin();
-      const ctx = await requireAdmin(feature);
+      const ctx = await requireAdmin(feature, allowTwoFactorSetup);
       setRequestSite(ctx.site.id);
       const out = await handler(ctx, req, (await routeCtx?.params) ?? ({} as P));
       return out instanceof Response ? out : json(out ?? { ok: true });

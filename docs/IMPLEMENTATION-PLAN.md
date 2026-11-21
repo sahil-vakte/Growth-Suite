@@ -42,3 +42,6 @@ Schedule one idempotent daily job per site. Delete raw analytics in bounded batc
 scoped by site, keeping the current month plus configured complete prior months.
 Zero disables retention. Add pure date/config tests and a real PostgreSQL isolation/
 retry test, run after migrations in CI. Existing analytics queries stay unchanged.
+
+## Task 0.8 - administrator two-factor authentication
+Add encrypted account TOTP state, hashed single-use recovery codes and a per-site admin policy. Generate an additive migration. Gate both pages and APIs; enrolment revokes previous sessions. Test RFC vectors, concurrent replay prevention, account isolation and the browser setup/sign-in flow. No external provider or new dependency is needed.
