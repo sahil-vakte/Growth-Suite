@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { blogPosts, products, reviews } from "@/db/schema";
@@ -241,6 +242,7 @@ export async function SectionView({
             ))}
             {schema && (
               <script
+                nonce={(await headers()).get("x-nonce") ?? undefined}
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{
                   __html: JSON.stringify(schema).replace(/</g, "\\u003c"),

@@ -8,10 +8,11 @@ const secret = () => new TextEncoder().encode(env.sessionSecret);
 export interface SessionClaims {
   uid: string;
   ver: number;
+  mfa?: boolean;
 }
 
 export async function signSession(c: SessionClaims, maxAgeSec = 60 * 60 * 24 * 7): Promise<string> {
-  return new SignJWT({ ver: c.ver })
+  return new SignJWT({ ver: c.ver, mfa: c.mfa === true })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(c.uid)
     .setIssuedAt()
@@ -23,7 +24,9 @@ export async function readSession(token: string | undefined): Promise<SessionCla
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secret(), { algorithms: ["HS256"] });
-    return payload.sub ? { uid: payload.sub, ver: Number(payload.ver ?? 0) } : null;
+    return payload.sub
+      ? { uid: payload.sub, ver: Number(payload.ver ?? 0), mfa: payload.mfa === true }
+      : null;
   } catch {
     return null;
   }

@@ -131,3 +131,72 @@ production build, 45 smoke checks and 8 browser tests pass locally.
 0.2 Built: GitHub Actions runs the full sequence with isolated PostgreSQL and mock
 integrations on pull requests and main pushes. Hosted run and required-check
 enforcement are being verified; not marked complete yet. No schema changes.
+
+0.2 verified: GitHub Actions run 44869048837 passed on Ubuntu/PostgreSQL 16.
+The Verify application status check is required on main, including administrators.
+
+## Shared UI foundation
+
+Implemented: refreshed login, dashboard cards, searchable/collapsible navigation,
+compact mobile menu, shared form/table styling, responsive builder columns,
+keyboard-accessible resource rows and focus-managed editing drawers. Public
+controls retain tenant colours with clearer focus and touch targets. Desktop and
+mobile screenshots reviewed. Typecheck, lint, build, 37 unit tests, 45 smoke checks
+and 10 browser tests passed. Feature-specific UI work remains in the roadmap.
+
+## Task 0.4 ? shared rate limiting
+
+Built: atomic Redis sliding windows across login, forms, chat, tracking, MCP token
+and existing protected routes; bounded memory fallback when REDIS_URL is blank.
+Keys use HMAC; Redis outages fail closed; operations have timeouts. No migration.
+Local: 40 unit tests passed, one Redis integration test skipped because no local
+Redis is configured. Hosted CI runs that test with two competing Node processes.
+Typecheck, lint, formatting, production build and 45 smoke checks passed.
+
+0.4 verified: hosted run 44870007164 passed with real Redis. All 41 unit/integration
+tests, 45 smoke checks and 10 Chromium tests passed. The two-process test permits
+exactly 8 of 24 competing requests against a shared quota of 8. Marked complete.
+
+## Task 0.5 ? structured API errors
+
+Done: all route handlers attach generated X-Request-ID values. Pino emits only
+route templates, method, status, tenant ID (null before resolution) and request ID.
+Sentry is optional, uses the same allowlist and strips SDK-added personal context.
+No exception text, SQL, request values or credentials are logged. Framework control
+flow is preserved. No migration. 46 local tests passed (one real-Redis test runs
+in CI), typecheck/lint/build and 45 smoke + 10 browser checks passed. Live Sentry
+delivery was not exercised because no DSN was supplied; adapter/privacy tests pass.
+
+## Task 0.6 ? analytics retention
+
+Done: configurable daily jobs prune expired raw events in 1,000-row tenant-scoped
+batches, with idempotent scheduling and retry-safe deletion. Zero disables pruning.
+Migration 0002_slow_onslaught adds nullable sites.analytics_retention_last_run_at.
+Analytics queries are unchanged. Real PostgreSQL tests prove expiry boundaries,
+tenant isolation and retries. Retention exposed an existing unstable default-site
+selection; it now honours authorised workspace selection and uses a deterministic
+fallback. 50 local unit tests passed (one Redis test runs in CI), one database test,
+typecheck/lint/format/build, 45 smoke checks and 10 browser checks passed.
+
+## Remaining scope
+
+All previously unfinished Epic 0 tasks are completed in this batch; previously completed tasks remain checked.
+The remaining roadmap, starting with 1.4 (menu design and nested ordering), is unfinished.
+The shared UI foundation is refreshed; feature-specific editor redesigns remain
+part of their respective unfinished tasks. No live provider credentials were supplied.
+
+## Task 0.8 - two-factor authentication
+
+Done: authenticator setup, encrypted TOTP secrets, ten hashed single-use recovery codes, password-confirmed removal and per-site administrator enforcement. Required enrolment gates pages and APIs; enabling/disabling revokes other sessions. Row locks prevent concurrent code replay. Existing password reset does not remove the second factor. Additive migration 0003_breezy_captain_britain. RFC 6238 vectors, replay/account isolation, browser enrolment, recovery login, policy permissions and old-session rejection pass. Verification: 53 local unit tests (Redis test runs in CI), 2 database tests, 45 smoke checks and 11 browser tests; typecheck, lint and production build passed. No external service or new credentials required.
+
+## Task 0.9 - Content-Security-Policy
+
+Done: fresh middleware nonces, dynamic HTML, nonced Next scripts/GTM/JSON-LD, GTM nonce propagation, blocked inline handlers and production eval. HTTPS content and theme CSS remain supported; optional connect origins are validated. No migration. Verified GTM bootstrap with an intercepted external payload, nonce rotation and rejection of hostile HTML scripts in Chromium, plus all existing flows. 55 local unit tests (one Redis test in CI), 45 smoke checks and 12 browser checks pass; typecheck, lint and build pass. Real customer GTM containers still need the live checklist.
+
+## Task 0.10 - backup and restore runbook
+
+Done: docs/OPERATIONS.md covers database/storage consistency, key escrow, retention, verification, isolated restore, cutover and rollback. Rehearsed on 21 November 2026 with PostgreSQL 18.7 pg_dump/pg_restore into a new database: all 74 public/migration tables matched counts, 36 files matched SHA-256, the restored ENCRYPTION_KEY decrypted a test setting and 45/45 smoke checks passed on the isolated mock-mode app. The restore and checks took 12 seconds on this small local dataset; this is not a production RTO guarantee. No cloud-storage or off-site-provider drill was possible without deployment credentials. Original app and worker restored on port 3217. Typecheck, 55 local unit tests, migrations/seed, build, 45 smoke checks and 12 browser tests pass. No new migration.
+
+## Task 1.3 - rich-text editor
+
+Done: lazy-loaded TipTap editor for blog posts and product descriptions, with heading levels, emphasis, lists, links, media-library images/alt text, editable tables and undo/redo. Paste cleanup and server-side sanitizeHtml validation prevent raw unsafe markup from being saved; public rendering retains its second sanitisation pass. Product updates now keep content history. Nested media-dialog focus and server rendering are verified. Added the required TipTap packages; no schema migration or provider configuration. Typecheck/lint/format/build, 56 local unit tests (one Redis test runs in CI), 45 smoke checks and 13 browser tests pass.

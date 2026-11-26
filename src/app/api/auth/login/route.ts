@@ -1,3 +1,4 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { cookies } from "next/headers";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
@@ -9,16 +10,23 @@ import { errorResponse, json } from "@/lib/api";
 import { audit } from "@/lib/history";
 import { env } from "@/lib/env";
 
-const attempts = new Map<string, { n: number; at: number }>();
+import { rateLimited, resetRateLimit } from "@/lib/integrations/rateLimit";
+import { clientIp } from "@/lib/public";
+import { consumeSecondFactor } from "@/lib/services/twoFactor";
+import { assertSameOrigin } from "@/lib/auth/current";
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   try {
-    const { email, password } = z
-      .object({ email: z.string().email(), password: z.string().min(1).max(200) })
+    await assertSameOrigin();
+    const { email, password, code } = z
+      .object({
+        email: z.string().email(),
+        password: z.string().min(1).max(200),
+        code: z.string().max(40).optional(),
+      })
       .parse(await req.json());
-    const key = `${email.toLowerCase()}|${req.headers.get("x-forwarded-for") ?? ""}`;
-    const a = attempts.get(key);
-    if (a && a.n >= 5 && Date.now() - a.at < 15 * 60_000)
+    const key = `login:${email.toLowerCase()}|${clientIp(req)}`;
+    if (await rateLimited(key, 5, 15 * 60_000))
       return json({ error: "Too many attempts. Please wait 15 minutes and try again." }, 429);
     const [user] = await db
       .select()
@@ -28,15 +36,30 @@ export async function POST(req: Request) {
     const ok =
       user && user.status === "active" && (await verifyPassword(password, user.passwordHash));
     if (!ok) {
-      attempts.set(key, {
-        n: (a && Date.now() - a.at < 15 * 60_000 ? a.n : 0) + 1,
-        at: Date.now(),
-      });
       return json({ error: "Email or password is not correct." }, 401);
     }
-    attempts.delete(key);
+    if (user.totpSecretEnc) {
+      if (!code)
+        return json(
+          { error: "Enter a code from your authenticator or a recovery code.", twoFactor: true },
+          401,
+        );
+      if (!(await consumeSecondFactor(user.id, user.sessionVersion, code.trim())))
+        return json(
+          {
+            error: "That code is invalid or has already been used. Try a new code.",
+            twoFactor: true,
+          },
+          401,
+        );
+    }
+    await resetRateLimit(key);
     await db.update(users).set({ lastLoginAt: new Date() }).where(eq(users.id, user.id));
-    const token = await signSession({ uid: user.id, ver: user.sessionVersion });
+    const token = await signSession({
+      uid: user.id,
+      ver: user.sessionVersion,
+      mfa: !!user.totpSecretEnc,
+    });
     (await cookies()).set(SESSION_COOKIE, token, {
       httpOnly: true,
       secure: env.appUrl.startsWith("https"),
@@ -50,3 +73,5 @@ export async function POST(req: Request) {
     return errorResponse(e);
   }
 }
+
+export const POST = withApiLog("/api/auth/login", "POST", handlePOST);

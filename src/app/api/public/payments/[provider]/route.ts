@@ -1,3 +1,4 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { orders } from "@/db/schema";
@@ -7,7 +8,7 @@ import { pjson } from "@/lib/public";
 import { env } from "@/lib/env";
 
 /** Payment provider webhooks. Signatures are verified before anything changes. */
-export async function POST(req: Request, { params }: { params: Promise<{ provider: string }> }) {
+async function handlePOST(req: Request, { params }: { params: Promise<{ provider: string }> }) {
   const { provider } = await params;
   const raw = await req.text();
   if (provider === "razorpay") {
@@ -45,3 +46,5 @@ export async function POST(req: Request, { params }: { params: Promise<{ provide
   }
   return pjson({ error: "Unknown provider" }, 404);
 }
+
+export const POST = withApiLog("/api/public/payments/[provider]", "POST", handlePOST);

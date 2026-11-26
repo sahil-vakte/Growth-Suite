@@ -1,3 +1,4 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { z } from "zod";
 import { track } from "@/lib/services/tracking";
 import { clientIp, noSite, pjson, rateLimited, siteFromRequest, tooMany } from "@/lib/public";
@@ -11,10 +12,10 @@ const schema = z.object({
   ids: z.record(z.string().max(300).optional()).optional(),
 });
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const site = await siteFromRequest(req);
   if (!site) return noSite();
-  if (rateLimited(`track:${clientIp(req)}`, 120, 60_000)) return tooMany();
+  if (await rateLimited(`track:${clientIp(req)}`, 120, 60_000)) return tooMany();
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return pjson({ error: "Bad event" }, 400);
   try {
@@ -39,3 +40,5 @@ export async function POST(req: Request) {
     return pjson({ error: "Rejected" }, 400);
   }
 }
+
+export const POST = withApiLog("/api/public/track", "POST", handlePOST);

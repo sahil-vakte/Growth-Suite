@@ -1,3 +1,4 @@
+import { scheduleAnalyticsRetention } from "./analyticsRetention";
 /** Scheduler "tick": due automation runs, campaign throttling, scheduled social posts, segment refresh, job queue.
  * Run every minute via `npm run worker`, or call POST /api/cron/tick with CRON_SECRET from any cron service. */
 import { and, count, eq, gte, inArray, lte, sql } from "drizzle-orm";
@@ -329,6 +330,7 @@ export async function tick() {
   await runCampaigns();
   await runScheduledSocial();
   await refreshSegments();
+  await scheduleAnalyticsRetention();
   const jobsResult = await processDueJobs(50);
   return { ms: Date.now() - started, automations, jobs: jobsResult };
 }

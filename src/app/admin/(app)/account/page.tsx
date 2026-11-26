@@ -9,6 +9,13 @@ export default async function Account() {
         {ctx.user.name} · {ctx.user.email}
       </p>
       <ChangePasswordForm />
+      <section className="card">
+        <h2>Account security</h2>
+        <p>Add an authenticator app and manage recovery codes.</p>
+        <a className="btn" href="/admin/security">
+          Manage two-factor authentication
+        </a>
+      </section>
     </div>
   );
 }

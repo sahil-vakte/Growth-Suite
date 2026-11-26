@@ -1,3 +1,4 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { env } from "@/lib/env";
@@ -17,7 +18,7 @@ const TYPES: Record<string, string> = {
 };
 
 /** Serves locally stored uploads (use S3/CDN in production). Path traversal is blocked. */
-export async function GET(_req: Request, { params }: { params: Promise<{ path: string[] }> }) {
+async function handleGET(_req: Request, { params }: { params: Promise<{ path: string[] }> }) {
   const { path: parts } = await params;
   const root = path.resolve(env.storageDir);
   const file = path.resolve(root, ...parts);
@@ -38,3 +39,5 @@ export async function GET(_req: Request, { params }: { params: Promise<{ path: s
     return new Response("Not found", { status: 404 });
   }
 }
+
+export const GET = withApiLog("/uploads/[...path]", "GET", handleGET);

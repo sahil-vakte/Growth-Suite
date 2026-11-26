@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { and, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
@@ -66,6 +67,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
       </section>
       <script
+        nonce={(await headers()).get("x-nonce") ?? undefined}
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({

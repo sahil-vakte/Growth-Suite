@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { useDialogFocus } from "./useDialogFocus";
 
 type M = {
   id: string;
@@ -19,6 +21,9 @@ export default function MediaPicker({
   onPick: (m: { url: string; alt: string }) => void;
   onClose: () => void;
 }) {
+  const [mounted, setMounted] = useState(false);
+  const panelRef = useDialogFocus(onClose, mounted);
+  useEffect(() => setMounted(true), []);
   const [items, setItems] = useState<M[]>([]);
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
@@ -30,11 +35,6 @@ export default function MediaPicker({
   useEffect(() => {
     load();
   }, [q]);
-  useEffect(() => {
-    const k = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    addEventListener("keydown", k);
-    return () => removeEventListener("keydown", k);
-  }, [onClose]);
   async function upload(files: FileList | null) {
     if (!files?.length) return;
     setBusy(true);
@@ -47,7 +47,8 @@ export default function MediaPicker({
     if (!r.ok) setErr(d.error ?? "Upload failed");
     else load();
   }
-  return (
+  if (!mounted) return null;
+  return createPortal(
     <div
       className="drawer"
       role="dialog"
@@ -55,7 +56,7 @@ export default function MediaPicker({
       aria-label="Media library"
       onClick={onClose}
     >
-      <div className="panel" onClick={(e) => e.stopPropagation()}>
+      <div className="panel" ref={panelRef} onClick={(e) => e.stopPropagation()}>
         <div className="row">
           <h2 style={{ margin: 0 }}>Choose an image</h2>
           <span className="spacer" />
@@ -126,6 +127,7 @@ export default function MediaPicker({
           {!items.length && <p className="muted">No images yet — upload some.</p>}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

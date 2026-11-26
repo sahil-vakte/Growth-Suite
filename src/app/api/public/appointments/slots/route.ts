@@ -1,7 +1,8 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { availableSlots } from "@/lib/services/appointments";
 import { noSite, pjson, siteFromRequest } from "@/lib/public";
 
-export async function GET(req: Request) {
+async function handleGET(req: Request) {
   const site = await siteFromRequest(req);
   if (!site) return noSite();
   const u = new URL(req.url);
@@ -22,3 +23,5 @@ export async function GET(req: Request) {
     return pjson({ error: e instanceof Error ? e.message : "Unavailable" }, 404);
   }
 }
+
+export const GET = withApiLog("/api/public/appointments/slots", "GET", handleGET);

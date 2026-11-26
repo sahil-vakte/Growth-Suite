@@ -111,3 +111,46 @@ docs/                  SCOPE.pdf, INTEGRATIONS.pdf, BUILD-REPORT.md, TEST-REPORT
 
 After `npm run db:seed`: `ADMIN_EMAIL` / `ADMIN_PASSWORD` from `.env` (defaults `admin@example.com` /
 `ChangeMe-2026!` — change immediately).
+
+## Automated checks
+
+Run `npm run lint`, `npm run format:check`, `npm run typecheck` and `npm test`.
+Install Chromium with `npx playwright install chromium`, then run `npm run build`
+and `npm run test:e2e`. Playwright starts a production server when needed, or reuses
+an existing local server. `E2E_BASE_URL` overrides the browser test address.
+Use a seeded test database: smoke/browser checks create synthetic records.
+
+GitHub Actions runs the complete sequence on pull requests, including a real Redis
+service and a two-process shared-limit test. The `Verify application` check is
+required before merging to `main`.
+
+Set `REDIS_URL` on every production app instance to share rate limits. Use the same
+`SESSION_SECRET` across instances; keys are HMAC hashes. Blank `REDIS_URL` uses a
+bounded in-memory fallback suitable for one local instance. A configured store
+outage fails closed. Redis is infrastructure and remains active in mock integration
+mode. Configure your reverse proxy to replace incoming forwarded-IP headers.
+
+## Logs and analytics retention
+
+API responses include `X-Request-ID`. Error logs contain only that ID, a source-code
+route template, HTTP method/status and the resolved site ID (null when unresolved).
+Request values, SQL and exception messages are not logged. Optional `SENTRY_DSN`
+reports the same metadata; mock integration mode records it locally instead.
+
+`ANALYTICS_RETENTION_MONTHS` defaults to 12. The daily scheduler keeps the current
+UTC month plus that many complete prior months, deleting older raw events in
+batches of 1,000. Set 0 to disable deletion, or an integer up to 120. Analytics
+queries are unchanged; historical raw events outside the retention window will no
+longer be available. Lead records are unaffected. Run the worker or cron endpoint
+for retention jobs to execute. Run `npm run test:db` after migrations to verify
+retention isolation and retry safety against a test PostgreSQL database.
+
+### Two-factor authentication
+Open My account > Manage two-factor authentication. Enter your password, add the displayed time-based setup key to an authenticator and verify a code. Save the ten single-use recovery codes shown once. Enabling or disabling signs out other sessions. Site administrators can require enrolment for their site's administrators; editor and sales roles remain optional. Encrypted secrets require the same backed-up ENCRYPTION_KEY after restore. Codes follow RFC 6238 (SHA-1, six digits, 30 seconds); setup expires after ten minutes. No provider keys or external service is used.
+
+### Browser Content-Security-Policy
+Every HTML response is dynamically rendered with a fresh script nonce. GTM and JSON-LD carry the nonce; GTM propagates it to loaded tags. Production blocks inline event handlers and eval. Themes still use inline CSS; HTTPS images, media and frames support uploaded/external site content. Known Google/Meta/payment/video connections are allowed; add other explicit HTTPS origins through CSP_CONNECT_ORIGINS. GTM Custom JavaScript variables requiring eval are intentionally unsupported: use supported templates instead. Do not cache HTML across requests at a CDN because each response has its own nonce. The browser test intercepts only the external GTM payload, proving bootstrap/nonce behaviour without sending analytics to a real container.
+References: https://nextjs.org/docs/app/guides/content-security-policy and https://developers.google.com/tag-platform/security/guides/csp
+
+### Rich-text content
+Blog Content and product Description fields use TipTap with headings, lists, links, images from the media library, tables and undo/redo. Pasted HTML keeps supported formatting while custom styling and unsafe content are removed. The server sanitises saved HTML, and public pages sanitise it again. Product edits now create content-history snapshots. No additional environment variables are required.

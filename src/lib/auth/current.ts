@@ -1,3 +1,7 @@
+import { chooseCurrentSite } from "../engines/currentSite";
+import { needsTwoFactor } from "../engines/totp";
+import { env } from "../env";
+import { setRequestSite } from "../requestContext";
 import { cookies, headers } from "next/headers";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
@@ -14,6 +18,8 @@ export interface AdminContext {
   site: SiteRow;
   member: Member & { socialApprove: boolean; mcpAccess: boolean };
   actor: string; // email used in audit trails
+  twoFactorRequired: boolean;
+  twoFactorVerified: boolean;
   sites: { id: string; name: string; domain: string }[];
 }
 
@@ -26,7 +32,7 @@ export class HttpError extends Error {
   }
 }
 
-export async function getAdminContext(): Promise<AdminContext | null> {
+export async function getAdminContext(allowTwoFactorSetup = false): Promise<AdminContext | null> {
   const jar = await cookies();
   const claims = await readSession(jar.get(SESSION_COOKIE)?.value);
   if (!claims) return null;
@@ -46,7 +52,7 @@ export async function getAdminContext(): Promise<AdminContext | null> {
       domain: s.domain,
     }));
   const wanted = jar.get(SITE_COOKIE)?.value;
-  const chosenId = all.find((s) => s.id === wanted)?.id ?? all[0]?.id;
+  const chosenId = chooseCurrentSite(all, wanted, env.defaultSiteDomain);
   if (!chosenId) return null;
   const [site] = await db.select().from(sites).where(eq(sites.id, chosenId)).limit(1);
   const m = rows.find((r) => r.s.id === chosenId)?.m;
@@ -67,11 +73,31 @@ export async function getAdminContext(): Promise<AdminContext | null> {
         mcpAccess: true,
         isPlatformAdmin: true,
       };
-  return { user, site, member, actor: user.email, sites: all };
+  setRequestSite(site.id);
+  const twoFactorRequired = needsTwoFactor(
+    !!user.totpSecretEnc,
+    site.requireAdminTwoFactor,
+    member.role === "admin" || !!member.isPlatformAdmin,
+    claims.mfa === true,
+  );
+  // Enrolled accounts may never bypass verification, including the setup API.
+  if (twoFactorRequired && (!allowTwoFactorSetup || !!user.totpSecretEnc)) return null;
+  return {
+    user,
+    site,
+    member,
+    actor: user.email,
+    sites: all,
+    twoFactorRequired,
+    twoFactorVerified: claims.mfa === true,
+  };
 }
 
-export async function requireAdmin(feature?: Feature): Promise<AdminContext> {
-  const ctx = await getAdminContext();
+export async function requireAdmin(
+  feature?: Feature,
+  allowTwoFactorSetup = false,
+): Promise<AdminContext> {
+  const ctx = await getAdminContext(allowTwoFactorSetup);
   if (!ctx) throw new HttpError(401, "Please sign in.");
   if (feature && !canAccess(ctx.member, feature))
     throw new HttpError(403, "You do not have access to this area.");

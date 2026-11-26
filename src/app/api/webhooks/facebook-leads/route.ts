@@ -1,3 +1,5 @@
+import { setRequestSite } from "@/lib/requestContext";
+import { withApiLog } from "@/lib/apiLogging";
 import { createHmac } from "node:crypto";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
@@ -6,7 +8,7 @@ import { safeEqual, decrypt } from "@/lib/crypto";
 import { fetchFacebookLead } from "@/lib/integrations/adPlatforms";
 import { addActivity, upsertLead } from "@/lib/services/leads";
 
-export async function GET(req: Request) {
+async function handleGET(req: Request) {
   const u = new URL(req.url);
   if (
     u.searchParams.get("hub.mode") === "subscribe" &&
@@ -18,7 +20,7 @@ export async function GET(req: Request) {
 }
 
 /** Facebook / Instagram lead ads → CRM leads (source facebook_lead). */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const raw = await req.text();
   if (env.meta.appSecret) {
     const expected = "sha256=" + createHmac("sha256", env.meta.appSecret).update(raw).digest("hex");
@@ -38,6 +40,7 @@ export async function POST(req: Request) {
         | { site_id: string; value: { pageTokenEnc?: string; formMap?: Record<string, string> } }
         | undefined;
       if (!row) continue;
+      setRequestSite(row.site_id);
       const lead = await fetchFacebookLead(
         leadgen_id,
         row.value.pageTokenEnc ? decrypt(row.value.pageTokenEnc) : "",
@@ -62,3 +65,7 @@ export async function POST(req: Request) {
     }
   return new Response("OK");
 }
+
+export const GET = withApiLog("/api/webhooks/facebook-leads", "GET", handleGET);
+
+export const POST = withApiLog("/api/webhooks/facebook-leads", "POST", handlePOST);

@@ -732,3 +732,47 @@
     transition: none !important;
   }
 }
+
+/* Consistent public controls while retaining each site's colour and font tokens. */
+.site :where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid var(--p);
+  outline-offset: 4px;
+}
+.site .s-btn {
+  min-height: 44px;
+  border-radius: 10px;
+  font-weight: 650;
+}
+.site .s-card {
+  border-radius: 16px;
+  box-shadow: 0 3px 20px rgb(15 23 42 / 4%);
+}
+.site .s-form input:not([type="checkbox"]):not([type="radio"]),
+.site .s-form select {
+  min-height: 46px;
+}
+.site .s-field label {
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.site .s-header {
+  box-shadow: 0 1px 8px rgb(15 23 42 / 4%);
+}
+.site .s-chat-panel {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 48px rgb(15 23 42 / 18%);
+}
+@media (max-width: 600px) {
+  .site .s-chat-panel {
+    max-width: calc(100vw - 32px);
+  }
+  .site .s-popup-box {
+    max-width: calc(100vw - 32px);
+    max-height: 85dvh;
+    overflow: auto;
+  }
+  .site .s-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
