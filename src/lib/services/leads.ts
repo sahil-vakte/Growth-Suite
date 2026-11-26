@@ -17,6 +17,7 @@ import { computeScore, type Signal } from "../engines/scoring";
 import { getSetting } from "../settings";
 import { queueConversion } from "./conversions";
 import { sites } from "@/db/schema";
+import { queueCrmSync } from "./crmSync";
 
 export type LeadRow = typeof leads.$inferSelect;
 export interface LeadInput {
@@ -77,6 +78,7 @@ export async function upsertLead(
       visitorId: existing.visitorId ?? input.visitorId ?? null,
     };
     const [lead] = await db.update(leads).set(merged).where(eq(leads.id, existing.id)).returning();
+    await queueCrmSync(siteId, lead.id);
     return { lead, created: false };
   }
 
@@ -110,6 +112,7 @@ export async function upsertLead(
     actor,
   );
   await emitLeadEvent(siteId, lead, { type: "lead_created", value: lead.source });
+  await queueCrmSync(siteId, lead.id);
   return { lead, created: true };
 }
 
@@ -148,6 +151,7 @@ export async function changeStage(siteId: string, leadId: string, stageId: strin
     actor,
   );
   await emitLeadEvent(siteId, lead, { type: "stage_changed", value: stage.name, stageId });
+  await queueCrmSync(siteId, leadId, "stage");
   return lead;
 }
 

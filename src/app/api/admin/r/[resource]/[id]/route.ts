@@ -1,3 +1,4 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { adminRoute, readJson } from "@/lib/api";
 import { HttpError, requireAdmin } from "@/lib/auth/current";
 import { resourceByKey } from "@/lib/admin/resources";
@@ -14,12 +15,20 @@ async function resolve(key: string) {
   return r;
 }
 
-export const GET = adminRoute<P>(undefined, async (ctx, _req, p) =>
-  getRow(await resolve(p.resource), ctx, p.id),
+export const GET = withApiLog(
+  "/api/admin/r/[resource]/[id]",
+  "GET",
+  adminRoute<P>(undefined, async (ctx, _req, p) => getRow(await resolve(p.resource), ctx, p.id)),
 );
-export const PATCH = adminRoute<P>(undefined, async (ctx, req, p) =>
-  updateRow(await resolve(p.resource), ctx, p.id, await readJson(req)),
+export const PATCH = withApiLog(
+  "/api/admin/r/[resource]/[id]",
+  "PATCH",
+  adminRoute<P>(undefined, async (ctx, req, p) =>
+    updateRow(await resolve(p.resource), ctx, p.id, await readJson(req)),
+  ),
 );
-export const DELETE = adminRoute<P>(undefined, async (ctx, _req, p) =>
-  deleteRow(await resolve(p.resource), ctx, p.id),
+export const DELETE = withApiLog(
+  "/api/admin/r/[resource]/[id]",
+  "DELETE",
+  adminRoute<P>(undefined, async (ctx, _req, p) => deleteRow(await resolve(p.resource), ctx, p.id)),
 );

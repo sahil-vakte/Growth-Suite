@@ -209,3 +209,35 @@ test("social draft is submitted, returned and approved for scheduling", async ({
     await page.request.delete(`/api/admin/r/social-accounts/${account.id}`);
   }
 });
+
+test("workspace navigation works on mobile without horizontal overflow", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  const menu = page.getByRole("button", { name: "Menu", exact: true });
+  await expect(menu).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Admin" })).toBeHidden();
+  await menu.click();
+  await page.getByLabel("Find a page", { exact: true }).fill("Pages");
+  await page
+    .getByRole("navigation", { name: "Admin" })
+    .getByRole("link", { name: "Pages", exact: true })
+    .click();
+  await expect(page.getByRole("heading", { name: "Pages", exact: true })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Admin" })).toBeHidden();
+  expect(
+    await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+  ).toBeTruthy();
+});
+
+test("editing drawer traps keyboard focus and returns it on Escape", async ({ page }) => {
+  await page.goto("/admin/r/pages");
+  const add = page.getByRole("button", { name: "New page", exact: true });
+  await add.click();
+  const dialog = page.getByRole("dialog", { name: "New Page", exact: true });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Close", exact: true })).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(dialog.getByRole("button", { name: "Save", exact: true })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(add).toBeFocused();
+});

@@ -1,3 +1,5 @@
+import { setRequestSite } from "@/lib/requestContext";
+import { withApiLog } from "@/lib/apiLogging";
 import { and, eq } from "drizzle-orm";
 import { jwtVerify } from "jose";
 import { zodToJsonSchema } from "@/lib/mcp/schema";
@@ -31,13 +33,14 @@ async function client(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const c = await client(req);
   if (!c)
     return new Response(JSON.stringify({ error: "invalid_token" }), {
       status: 401,
       headers: { "WWW-Authenticate": 'Bearer realm="mcp"', "Content-Type": "application/json" },
     });
+  setRequestSite(c.siteId);
   const msg = await req.json().catch(() => null);
   if (!msg || msg.jsonrpc !== "2.0") return rpcErr(null, -32600, "Invalid request", 400);
   const { id, method, params } = msg;
@@ -96,3 +99,5 @@ export async function POST(req: Request) {
       return rpcErr(id, -32601, "Method not found");
   }
 }
+
+export const POST = withApiLog("/api/mcp", "POST", handlePOST);

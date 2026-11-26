@@ -1,3 +1,4 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
@@ -13,7 +14,7 @@ async function load(token: string) {
   return i && i.expiresAt > new Date() ? i : null;
 }
 
-export async function GET(_req: Request, { params }: { params: Promise<{ token: string }> }) {
+async function handleGET(_req: Request, { params }: { params: Promise<{ token: string }> }) {
   const i = await load((await params).token);
   if (!i) return pjson({ error: "This interview link has expired. Ask for a new one." }, 404);
   return pjson({
@@ -25,7 +26,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
 }
 
 /** Answers save as they go, so the owner can come back later with the same link. */
-export async function POST(req: Request, { params }: { params: Promise<{ token: string }> }) {
+async function handlePOST(req: Request, { params }: { params: Promise<{ token: string }> }) {
   const i = await load((await params).token);
   if (!i) return pjson({ error: "This interview link has expired." }, 404);
   const p = z
@@ -39,3 +40,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
     .where(eq(businessInterviews.id, i.id));
   return pjson({ ok: true });
 }
+
+export const GET = withApiLog("/api/public/interview/[token]", "GET", handleGET);
+
+export const POST = withApiLog("/api/public/interview/[token]", "POST", handlePOST);

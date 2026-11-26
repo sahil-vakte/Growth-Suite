@@ -1,3 +1,4 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { and, eq, gte } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { db } from "@/db";
@@ -7,7 +8,7 @@ import { buildOfflineCsv } from "@/lib/engines/googleAdsFile";
 import { hashEmail, hashPhone } from "@/lib/engines/hashing";
 
 /** Private CSV that Google Ads Data Manager fetches on a schedule (HTTPS with username/password). Last 90 days. */
-export async function GET(req: Request, { params }: { params: Promise<{ siteId: string }> }) {
+async function handleGET(req: Request, { params }: { params: Promise<{ siteId: string }> }) {
   const { siteId } = await params;
   const cfg = await getSetting(siteId, "integrations.googleAdsOffline");
   if (cfg.mode !== "file" || !cfg.fileUser || !cfg.filePasswordHash)
@@ -61,3 +62,5 @@ export async function GET(req: Request, { params }: { params: Promise<{ siteId: 
     headers: { "Content-Type": "text/csv; charset=utf-8", "Cache-Control": "no-store" },
   });
 }
+
+export const GET = withApiLog("/api/public/google-ads/[siteId]", "GET", handleGET);

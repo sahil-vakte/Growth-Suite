@@ -1,5 +1,11 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useDialogFocus } from "./useDialogFocus";
+import dynamic from "next/dynamic";
+const RichTextEditor = dynamic(() => import("./RichTextEditor"), {
+  ssr: false,
+  loading: () => <p>Loading editor...</p>,
+});
 import type { FieldDef } from "@/lib/admin/resources";
 
 export interface RowAction {
@@ -182,55 +188,69 @@ export default function ResourceManager({ res }: { res: ClientResource }) {
         </div>
       )}
       {error && <div className="alert error">{error}</div>}
-      <table className="data">
-        <thead>
-          <tr>
-            {listFields.map((f) => (
-              <th key={f.key}>{f.label}</th>
-            ))}
-            {res.actions?.length ? <th /> : null}
-          </tr>
-        </thead>
-        <tbody>
-          {loading ? (
+      <div className="table-scroll">
+        <table className="data">
+          <thead>
             <tr>
-              <td colSpan={listFields.length + 1} className="muted">
-                Loading…
-              </td>
+              {listFields.map((f) => (
+                <th key={f.key}>{f.label}</th>
+              ))}
+              {res.actions?.length ? <th /> : null}
             </tr>
-          ) : rows.length === 0 ? (
-            <tr>
-              <td colSpan={listFields.length + 1} className="muted">
-                Nothing here yet.
-              </td>
-            </tr>
-          ) : (
-            rows.map((row) => (
-              <tr key={row.id} style={{ cursor: "pointer" }} onClick={() => setEditing(row)}>
-                {listFields.map((f) => (
-                  <td key={f.key}>{cell(f, row[f.key])}</td>
-                ))}
-                {res.actions?.length ? (
-                  <td onClick={(e) => e.stopPropagation()} style={{ whiteSpace: "nowrap" }}>
-                    {res.actions
-                      .filter((a) => !a.showIf || a.showIf.in.includes(row[a.showIf.field]))
-                      .map((a) => (
-                        <button
-                          key={a.label}
-                          className="btn small"
-                          style={{ marginRight: 4 }}
-                          onClick={() => runAction(a, row)}
-                        >
-                          {a.label}
-                        </button>
-                      ))}
-                  </td>
-                ) : null}
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={listFields.length + 1} className="muted">
+                  Loading…
+                </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : rows.length === 0 ? (
+              <tr>
+                <td colSpan={listFields.length + 1} className="muted">
+                  Nothing here yet.
+                </td>
+              </tr>
+            ) : (
+              rows.map((row) => (
+                <tr
+                  key={row.id}
+                  style={{ cursor: "pointer" }}
+                  tabIndex={0}
+                  aria-label={`Edit ${res.singular.toLowerCase()}: ${String(row[res.titleField] ?? "")}`}
+                  onKeyDown={(e) => {
+                    if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
+                      e.preventDefault();
+                      setEditing(row);
+                    }
+                  }}
+                  onClick={() => setEditing(row)}
+                >
+                  {listFields.map((f) => (
+                    <td key={f.key}>{cell(f, row[f.key])}</td>
+                  ))}
+                  {res.actions?.length ? (
+                    <td onClick={(e) => e.stopPropagation()} style={{ whiteSpace: "nowrap" }}>
+                      {res.actions
+                        .filter((a) => !a.showIf || a.showIf.in.includes(row[a.showIf.field]))
+                        .map((a) => (
+                          <button
+                            key={a.label}
+                            className="btn small"
+                            style={{ marginRight: 4 }}
+                            onClick={() => runAction(a, row)}
+                          >
+                            {a.label}
+                          </button>
+                        ))}
+                    </td>
+                  ) : null}
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
       <div className="row" style={{ marginTop: ".75rem" }}>
         <span className="muted small">{total} total</span>
         <span className="spacer" />
@@ -273,6 +293,7 @@ function EditDrawer({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const panelRef = useDialogFocus(onClose);
   const init = () =>
     Object.fromEntries(
       res.fields.map((f) => {
@@ -343,7 +364,7 @@ function EditDrawer({
       aria-modal="true"
       aria-label={`${row ? "Edit" : "New"} ${res.singular}`}
     >
-      <div className="panel" onClick={(e) => e.stopPropagation()}>
+      <div className="panel" ref={panelRef} onClick={(e) => e.stopPropagation()}>
         <div className="row">
           <h2 style={{ margin: 0 }}>
             {row ? `Edit ${res.singular.toLowerCase()}` : `New ${res.singular.toLowerCase()}`}
@@ -382,12 +403,20 @@ function EditDrawer({
                   {f.required && " *"}
                 </label>
               )}
-              {f.type === "textarea" || f.type === "richtext" ? (
+              {f.type === "richtext" ? (
+                <RichTextEditor
+                  id={id}
+                  label={f.label}
+                  value={String(v ?? "")}
+                  readOnly={ro}
+                  onChange={(html) => set(f.key, html)}
+                />
+              ) : f.type === "textarea" ? (
                 <textarea
                   id={id}
                   value={String(v ?? "")}
                   readOnly={ro}
-                  rows={f.type === "richtext" ? 12 : 4}
+                  rows={4}
                   onChange={(e) => set(f.key, e.target.value)}
                 />
               ) : f.type === "json" ? (

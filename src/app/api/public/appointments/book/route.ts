@@ -1,11 +1,12 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { z } from "zod";
 import { book } from "@/lib/services/appointments";
 import { clientIp, noSite, pjson, rateLimited, siteFromRequest, tooMany } from "@/lib/public";
 
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const site = await siteFromRequest(req);
   if (!site) return noSite();
-  if (rateLimited(`book:${clientIp(req)}`, 10, 60_000)) return tooMany();
+  if (await rateLimited(`book:${clientIp(req)}`, 10, 60_000)) return tooMany();
   const p = z
     .object({
       serviceId: z.string(),
@@ -27,3 +28,5 @@ export async function POST(req: Request) {
     return pjson({ error: e instanceof Error ? e.message : "Could not book" }, 409);
   }
 }
+
+export const POST = withApiLog("/api/public/appointments/book", "POST", handlePOST);

@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { and, desc, eq, inArray, lt, gt, asc } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
@@ -176,6 +177,7 @@ export default async function BlogPost({ params }: Props) {
         </div>
       </article>
       <script
+        nonce={(await headers()).get("x-nonce") ?? undefined}
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }}
       />

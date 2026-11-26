@@ -1,3 +1,4 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { z } from "zod";
 import { db } from "@/db";
 import { clickLogs } from "@/db/schema";
@@ -5,10 +6,10 @@ import { shortCode } from "@/lib/ids";
 import { clientIp, noSite, pjson, rateLimited, siteFromRequest, tooMany } from "@/lib/public";
 
 /** Logs WhatsApp / call clicks. WhatsApp clicks get a Ref code appended to the message so the chat links back to the visit. */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const site = await siteFromRequest(req);
   if (!site) return noSite();
-  if (rateLimited(`click:${clientIp(req)}`, 30, 60_000)) return tooMany();
+  if (await rateLimited(`click:${clientIp(req)}`, 30, 60_000)) return tooMany();
   const p = z
     .object({
       kind: z.enum(["whatsapp", "call"]),
@@ -29,3 +30,5 @@ export async function POST(req: Request) {
   });
   return pjson({ ok: true, refCode });
 }
+
+export const POST = withApiLog("/api/public/click", "POST", handlePOST);

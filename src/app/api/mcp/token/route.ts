@@ -1,3 +1,5 @@
+import { setRequestSite } from "@/lib/requestContext";
+import { withApiLog } from "@/lib/apiLogging";
 import { eq } from "drizzle-orm";
 import { SignJWT } from "jose";
 import bcrypt from "bcryptjs";
@@ -7,8 +9,8 @@ import { env } from "@/lib/env";
 import { clientIp, rateLimited } from "@/lib/public";
 
 /** OAuth 2.0 client-credentials grant: exchange client_id + client_secret for a 1-hour access token. */
-export async function POST(req: Request) {
-  if (rateLimited(`mcp-token:${clientIp(req)}`, 10, 60_000))
+async function handlePOST(req: Request) {
+  if (await rateLimited(`mcp-token:${clientIp(req)}`, 10, 60_000))
     return Response.json({ error: "slow_down" }, { status: 429 });
   const ct = req.headers.get("content-type") ?? "";
   const body = ct.includes("json")
@@ -23,6 +25,7 @@ export async function POST(req: Request) {
     .limit(1);
   if (!c || !c.active || !(await bcrypt.compare(String(body.client_secret ?? ""), c.secretHash)))
     return Response.json({ error: "invalid_client" }, { status: 401 });
+  setRequestSite(c.siteId);
   if (c.requireAdminApproval)
     return Response.json(
       {
@@ -40,3 +43,5 @@ export async function POST(req: Request) {
     .sign(new TextEncoder().encode(env.sessionSecret));
   return Response.json({ access_token: token, token_type: "Bearer", expires_in: 3600 });
 }
+
+export const POST = withApiLog("/api/mcp/token", "POST", handlePOST);

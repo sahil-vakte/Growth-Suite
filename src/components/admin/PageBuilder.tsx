@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useId } from "react";
 import { api } from "./ui";
 import MediaPicker from "./MediaPicker";
 
@@ -137,14 +137,7 @@ export default function PageBuilder(p: Props) {
         )}
       </div>
       {msg && <div className={`alert ${msg.ok ? "ok" : "error"}`}>{msg.text}</div>}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(260px, 340px) 1fr",
-          gap: "1rem",
-          alignItems: "start",
-        }}
-      >
+      <div className="builder-columns">
         <div className="card">
           <div className="row">
             <h3 style={{ margin: 0 }}>Sections</h3>
@@ -419,6 +412,7 @@ function ValueEditor({
   path: string;
   label?: string;
 }) {
+  const fieldId = useId();
   const key = path.split(".").pop() ?? "";
   if (isCta(value))
     return (
@@ -435,7 +429,7 @@ function ValueEditor({
   if (Array.isArray(value)) {
     return (
       <div className="field">
-        <label>{label ?? pretty(key)}</label>
+        <label htmlFor={fieldId}>{label ?? pretty(key)}</label>
         {value.map((item, i) => (
           <div
             key={i}
@@ -490,7 +484,12 @@ function ValueEditor({
     return (
       <div className="field">
         <label className="row">
-          <input type="checkbox" checked={value} onChange={(e) => onChange(e.target.checked)} />{" "}
+          <input
+            id={fieldId}
+            type="checkbox"
+            checked={value}
+            onChange={(e) => onChange(e.target.checked)}
+          />{" "}
           {label ?? pretty(key)}
         </label>
       </div>
@@ -498,15 +497,20 @@ function ValueEditor({
   if (typeof value === "number")
     return (
       <div className="field">
-        <label>{label ?? pretty(key)}</label>
-        <input type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} />
+        <label htmlFor={fieldId}>{label ?? pretty(key)}</label>
+        <input
+          id={fieldId}
+          type="number"
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+        />
       </div>
     );
   if (key === "formId")
     return (
       <div className="field">
-        <label>Form</label>
-        <select value={String(value ?? "")} onChange={(e) => onChange(e.target.value)}>
+        <label htmlFor={fieldId}>Form</label>
+        <select id={fieldId} value={String(value ?? "")} onChange={(e) => onChange(e.target.value)}>
           <option value="">—</option>
           {pickers.forms.map((f) => (
             <option key={f.id} value={f.id}>
@@ -520,11 +524,11 @@ function ValueEditor({
   const long = s.length > 80 || /body|text|subheading|answer|^a$|quote|address/i.test(key);
   return (
     <div className="field">
-      <label>{label && label.trim() ? label : pretty(key)}</label>
+      <label htmlFor={fieldId}>{label && label.trim() ? label : pretty(key)}</label>
       {long ? (
-        <textarea value={s} onChange={(e) => onChange(e.target.value)} rows={3} />
+        <textarea id={fieldId} value={s} onChange={(e) => onChange(e.target.value)} rows={3} />
       ) : (
-        <input value={s} onChange={(e) => onChange(e.target.value)} />
+        <input id={fieldId} value={s} onChange={(e) => onChange(e.target.value)} />
       )}
     </div>
   );

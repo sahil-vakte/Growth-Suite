@@ -1,3 +1,17 @@
+# Latest verification - 21 November 2026
+
+- TypeScript, ESLint (zero warnings), Prettier, production build, migrations and seed: passed.
+- Local unit tests: 56 passed; 1 Redis integration test runs in hosted CI.
+- PostgreSQL integration: 2 passed (retention and concurrent two-factor recovery-code consumption).
+- HTTP smoke: 45/45 passed against localhost:3217.
+- Headless Chromium: 13/13 passed, including MFA, CSP, rich text and mobile/keyboard workflows.
+- Desktop/mobile UI screenshots reviewed.
+- Hosted CI through Epic 0 passed: run 44873052961, including real Redis. Final rich-text commit will run the same pipeline.
+- Isolated restore: all 74 tables and 36 files verified, encryption-key round trip passed, restored server smoke 45/45.
+- Live provider delivery, cloud-storage restore and off-site recovery were not exercised without deployment credentials.
+
+---
+
 # Test report
 
 Run on 21 November 2026 02:36 UTC on a fresh PostgreSQL 16 database, Node v22.23.5, Next.js 15.5 production build, `INTEGRATIONS_MODE=mock` (no real messages, payments or AI calls).

@@ -21,16 +21,16 @@ Size: S (< 1 day) · M (1–3 days) · L (3–7 days) · XL (1–2 weeks).
 
 | # | Task | Size | Done when |
 |---|---|---|---|
-| 0.1 ? | Browser end-to-end tests with Playwright for: login, page builder (add/edit/reorder/publish), form submit on the public site, popup shows and closes, chat widget conversation, booking flow, CRM lead detail, social approval flow | L | `npm run test:e2e` runs headless in CI and passes |
-| 0.2 | CI pipeline (GitHub Actions): install, typecheck, lint, unit tests, build, start Postgres service, migrate, seed, smoke test, Playwright | M | Every PR runs the full pipeline; failures block merge |
-| 0.3 ? | ESLint + Prettier config and fix all warnings | S | `npm run lint` clean |
-| 0.4 | Shared rate limiting (Redis/Upstash adapter with in-memory fallback) for login, public forms, chat, track, MCP token | M | Limits hold across 2+ app instances (test with two processes) |
-| 0.5 | Structured logging (pino) with request IDs; error tracking adapter (Sentry, optional via `SENTRY_DSN`) | M | Every API error is logged with site ID, route, request ID; no personal data in logs |
-| 0.6 | Analytics events table partitioned by month (or retention job deleting raw events after N months, configurable) | M | Migration + job; queries unchanged |
+| 0.1 ✅ | Browser end-to-end tests with Playwright for: login, page builder (add/edit/reorder/publish), form submit on the public site, popup shows and closes, chat widget conversation, booking flow, CRM lead detail, social approval flow | L | `npm run test:e2e` runs headless in CI and passes |
+| 0.2 ✅ | CI pipeline (GitHub Actions): install, typecheck, lint, unit tests, build, start Postgres service, migrate, seed, smoke test, Playwright | M | Every PR runs the full pipeline; failures block merge |
+| 0.3 ✅ | ESLint + Prettier config and fix all warnings | S | `npm run lint` clean |
+| 0.4 ✅ | Shared rate limiting (Redis/Upstash adapter with in-memory fallback) for login, public forms, chat, track, MCP token | M | Limits hold across 2+ app instances (test with two processes) |
+| 0.5 ✅ | Structured logging (pino) with request IDs; error tracking adapter (Sentry, optional via `SENTRY_DSN`) | M | Every API error is logged with site ID, route, request ID; no personal data in logs |
+| 0.6 ✅ | Analytics events table partitioned by month (or retention job deleting raw events after N months, configurable) | M | Migration + job; queries unchanged |
 | 0.7 ✅ | Password reset by email (token, 1-hour expiry, single use) and "change my password" screen | M | Flow tested; old sessions revoked after reset |
-| 0.8 | Two-factor authentication (TOTP) for admin users, enforceable per site | L | Admin can require 2FA; recovery codes; tested |
-| 0.9 | Content-Security-Policy header with nonces for inline scripts (GTM, JSON-LD) | M | CSP active in production without breaking GTM or the site runtime |
-| 0.10 | Backups & restore runbook in `docs/OPERATIONS.md` (database, storage, ENCRYPTION_KEY) | S | Document exists and restore is rehearsed once |
+| 0.8 ✅ | Two-factor authentication (TOTP) for admin users, enforceable per site | L | Admin can require 2FA; recovery codes; tested |
+| 0.9 ✅ | Content-Security-Policy header with nonces for inline scripts (GTM, JSON-LD) | M | CSP active in production without breaking GTM or the site runtime |
+| 0.10 ✅ | Backups & restore runbook in `docs/OPERATIONS.md` (database, storage, ENCRYPTION_KEY) | S | Document exists and restore is rehearsed once |
 
 ## Epic 1 — Website & content (P1–P2)
 
@@ -38,7 +38,7 @@ Size: S (< 1 day) · M (1–3 days) · L (3–7 days) · XL (1–2 weeks).
 |---|---|---|---|
 | 1.1 ✅ | Image optimisation on upload: convert JPEG/PNG to WebP (sharp), keep original, store width/height, generate 3 responsive sizes; `srcset` in section images | M | Uploading a PNG produces WebP variants; Lighthouse image audit passes |
 | 1.2 ✅ | Media picker modal in page builder (choose from library or upload) instead of pasting URLs | M | Image fields open the picker; alt text editable inline |
-| 1.3 | Rich-text editor for blog posts and product descriptions (TipTap), output passed through `sanitizeHtml` | M | Headings, lists, links, images, tables; paste-cleaning |
+| 1.3 ✅ | Rich-text editor for blog posts and product descriptions (TipTap), output passed through `sanitizeHtml` | M | Headings, lists, links, images, tables; paste-cleaning |
 | 1.4 | Mega-menu panels and icon menu design; drag-and-drop menu ordering with nesting | M | Menu screen supports nested drag-and-drop; mega panel renders on desktop and collapses on mobile |
 | 1.5 | Header/footer layout choices (3 header designs, 3 footer designs) selectable in settings | M | Switching design changes the public site without code |
 | 1.6 | Live page preview inside the builder (iframe of the draft page, refresh on save) | M | Editor shows preview side by side |

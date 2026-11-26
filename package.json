@@ -17,18 +17,29 @@
     "test:e2e": "playwright test",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write src scripts tests *.ts *.mjs *.json",
-    "format:check": "prettier --check src scripts tests *.ts *.mjs *.json"
+    "format:check": "prettier --check src scripts tests *.ts *.mjs *.json",
+    "test:db": "tsx --env-file=.env node_modules/vitest/vitest.mjs run --config vitest.integration.config.ts"
   },
   "dependencies": {
+    "@floating-ui/dom": "^1.8.0",
+    "@sentry/node": "^11.16.0",
+    "@tiptap/extension-image": "^3.35.0",
+    "@tiptap/extension-table": "^3.35.0",
+    "@tiptap/pm": "^3.35.0",
+    "@tiptap/react": "^3.35.0",
+    "@tiptap/starter-kit": "^3.35.0",
     "bcryptjs": "^2.4.3",
     "drizzle-orm": "^0.45.4",
     "jose": "^5.9.6",
     "next": "15.5.29",
     "nodemailer": "^6.9.16",
     "pg": "^8.23.1",
+    "pino": "^10.4.0",
     "react": "19.1.10",
     "react-dom": "19.1.10",
+    "redis": "^6.3.1",
     "sharp": "^0.34.5",
+    "tsx": "^4.19.2",
     "zod": "^3.24.1"
   },
   "devDependencies": {
@@ -44,7 +55,6 @@
     "eslint": "^9.39.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "prettier": "^3.10.1",
-    "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.73.0",
     "vitest": "^2.1.8"

@@ -1,3 +1,5 @@
+import { setRequestSite } from "@/lib/requestContext";
+import { withApiLog } from "@/lib/apiLogging";
 import { createHmac } from "node:crypto";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
@@ -8,7 +10,7 @@ import { handleInbound } from "@/lib/services/whatsapp";
 import { eq } from "drizzle-orm";
 
 /** Meta webhook verification (GET) */
-export async function GET(req: Request) {
+async function handleGET(req: Request) {
   const u = new URL(req.url);
   if (
     u.searchParams.get("hub.mode") === "subscribe" &&
@@ -20,7 +22,7 @@ export async function GET(req: Request) {
 }
 
 /** Inbound messages & status updates. Routed to the site whose saved phone number id matches. */
-export async function POST(req: Request) {
+async function handlePOST(req: Request) {
   const raw = await req.text();
   const sig = req.headers.get("x-hub-signature-256") ?? "";
   if (env.whatsapp.appSecret) {
@@ -39,6 +41,7 @@ export async function POST(req: Request) {
       );
       const siteId = (r.rows[0] as { site_id?: string } | undefined)?.site_id;
       if (!siteId) continue;
+      setRequestSite(siteId);
       for (const st of v.statuses ?? [])
         await db
           .update(waMessages)
@@ -68,3 +71,7 @@ export async function POST(req: Request) {
     }
   return new Response("OK");
 }
+
+export const GET = withApiLog("/api/webhooks/whatsapp", "GET", handleGET);
+
+export const POST = withApiLog("/api/webhooks/whatsapp", "POST", handlePOST);

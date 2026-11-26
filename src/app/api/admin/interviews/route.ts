@@ -1,3 +1,4 @@
+import { withApiLog } from "@/lib/apiLogging";
 import { z } from "zod";
 import { db } from "@/db";
 import { businessInterviews } from "@/db/schema";
@@ -22,25 +23,29 @@ const DEFAULT_QUESTIONS = [
 ];
 
 /** Private 14-day interview link for the business owner (a new link replaces the old one). */
-export const POST = adminRoute("knowledge", async (ctx, req) => {
-  const b = z
-    .object({
-      questions: z.array(z.string().min(3).max(500)).max(50).optional(),
-      language: z.string().max(10).default("en-GB"),
-    })
-    .parse(await readJson(req).catch(() => ({})));
-  await db.delete(businessInterviews).where(eq(businessInterviews.siteId, ctx.site.id));
-  const token = randomToken(18);
-  await db.insert(businessInterviews).values({
-    siteId: ctx.site.id,
-    token,
-    expiresAt: new Date(Date.now() + 14 * 86_400_000),
-    questions: b.questions?.length ? b.questions : DEFAULT_QUESTIONS,
-    language: b.language,
-  });
-  return {
-    ok: true,
-    url: `${env.appUrl}/interview/${token}`,
-    message: "Send this link to the business owner. It expires in 14 days.",
-  };
-});
+export const POST = withApiLog(
+  "/api/admin/interviews",
+  "POST",
+  adminRoute("knowledge", async (ctx, req) => {
+    const b = z
+      .object({
+        questions: z.array(z.string().min(3).max(500)).max(50).optional(),
+        language: z.string().max(10).default("en-GB"),
+      })
+      .parse(await readJson(req).catch(() => ({})));
+    await db.delete(businessInterviews).where(eq(businessInterviews.siteId, ctx.site.id));
+    const token = randomToken(18);
+    await db.insert(businessInterviews).values({
+      siteId: ctx.site.id,
+      token,
+      expiresAt: new Date(Date.now() + 14 * 86_400_000),
+      questions: b.questions?.length ? b.questions : DEFAULT_QUESTIONS,
+      language: b.language,
+    });
+    return {
+      ok: true,
+      url: `${env.appUrl}/interview/${token}`,
+      message: "Send this link to the business owner. It expires in 14 days.",
+    };
+  }),
+);
