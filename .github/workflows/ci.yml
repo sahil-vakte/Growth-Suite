@@ -80,6 +80,7 @@ jobs:
           retention-days: 3
       - name: Package verified production release
         run: |
+          mkdir -p public
           npm prune --omit=dev
           printf '%s\n' "$GITHUB_SHA" > REVISION
           tar --exclude='.next/cache' -czf growth-production.tar.gz .next node_modules public src scripts drizzle package.json package-lock.json tsconfig.json next.config.ts REVISION
